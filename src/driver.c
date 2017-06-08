@@ -52,6 +52,7 @@
 #include "date.h"
 #include "decimal.h"
 #include "genrand.h"
+#include "esg_custom_table.h"
 #include "tdefs.h"
 #include "tdef_functions.h"
 #include "build_support.h"
@@ -384,7 +385,7 @@ validate_options(void)
 * TODO: None
 */
 int
-main (int ac, char **av)
+main_bak (int ac, char **av)
 {
 	int i,
 		tabid = -1,
@@ -513,7 +514,7 @@ main (int ac, char **av)
 			if (pF->validate == NULL)
 				continue;
 
-         kRowCount = get_rowcount(i);
+			kRowCount = get_rowcount(i);
 
 			kValidateCount = get_int("VCOUNT");
 			if ((kRowCount > 0) && (kValidateCount > kRowCount))
@@ -521,46 +522,244 @@ main (int ac, char **av)
 				kValidateCount = kRowCount;
 			}
 
-		if (!is_set("RNGSEED"))
-		{
-			ftime(&t);
-			setSeed(VALIDATE_STREAM, t.millitm);
-		} else {
-			setSeed(VALIDATE_STREAM, get_int("RNGSEED"));
-		}
-         print_start(i);
+		    if (!is_set("RNGSEED"))
+		    {
+		    	ftime(&t);
+		    	setSeed(VALIDATE_STREAM, t.millitm);
+		    } else {
+		    	setSeed(VALIDATE_STREAM, get_int("RNGSEED"));
+		    }
+            print_start(i);
 
 			for (; kValidateCount; kValidateCount--)
 			{
 				genrand_key(&kRandomRow, DIST_UNIFORM, 1, kRowCount, 0, VALIDATE_STREAM); 
 				pF->validate(i, kRandomRow, NULL);
-            if (!(pT->flags & FL_VPRINT))
-               printValidation(i, kRandomRow);
+                if (!(pT->flags & FL_VPRINT))
+                    printValidation(i, kRandomRow);
 			}
 
 			print_close(i);
 		}
 		else
 		{
-		/**
-		 * GENERAL CASE
-		 * if there are no rows to build, then loop
-		 */
-         split_work(i, &kFirstRow, &kRowCount);
-         /*
-         * if there are rows to skip then skip them 
-         */
-         if (kFirstRow != 1)
-         {
-            row_skip(i, (int)(kFirstRow - 1));
-            if (pT->flags & FL_PARENT)
-               row_skip(pT->nParam, (int)(kFirstRow - 1));
-         }
+		    /**
+		     * GENERAL CASE
+		     * if there are no rows to build, then loop
+		     */
+            split_work(i, &kFirstRow, &kRowCount);
+            /*
+            * if there are rows to skip then skip them 
+            */
+            if (kFirstRow != 1)
+            {
+               row_skip(i, (int)(kFirstRow - 1));
+               if (pT->flags & FL_PARENT)
+                 row_skip(pT->nParam, (int)(kFirstRow - 1));
+            }
          
-         /*
-         * now build the actual rows
-         */
-         gen_tbl(i, kFirstRow, kRowCount);
+            /*
+            * now build the actual rows
+            */
+            gen_tbl(i, kFirstRow, kRowCount);
+		}
+	}
+
+#ifndef NOLOAD
+	if (is_set("DBLOAD"))
+		load_close();
+#endif
+	
+	return (0);
+}
+
+
+
+/* modified for esgen */
+int
+main (int ac, char **av)
+{
+	int i,
+		tabid = -1,
+		nCommandLineLength = 0,
+		nArgLength;
+	char *tname;
+	ds_key_t kRowCount,
+		kFirstRow,
+		kRandomRow,
+		kValidateCount;
+	struct timeb t;
+   
+   cus_table_t* table;
+	
+	process_options (ac, av);
+	validate_options();
+
+#ifdef ESG_TEST
+    table = esg_gen_table();
+#endif
+    
+	init_rand_cus(table->col_num);
+
+
+	/* build command line argument string */
+	g_szCommandLine[0] = '\0';
+	for (i=1; i < ac; i++)
+	{
+		nArgLength = strlen(av[i]) + 1;
+		if ((nCommandLineLength + nArgLength) >= 200)
+		{
+			ReportError(QERR_CMDLINE_TOO_LONG, NULL, 0);
+			break;
+		}
+		strcat(g_szCommandLine, av[i]);
+		strcat(g_szCommandLine, " ");
+		nCommandLineLength += nArgLength;
+	}
+
+   if (is_set("UPDATE"))
+   {
+      setUpdateDates();
+      setUpdateScaling(S_PURCHASE);
+      setUpdateScaling(S_WEB_ORDER);
+      setUpdateScaling(S_CATALOG_ORDER);
+      setUpdateScaling(S_INVENTORY);
+   }
+	
+	/* if we are using shared memory to pass parameters to/from peers, then read additional
+	* parameters here.
+	*/
+	if (is_set("SHMKEY"))
+		load_params();	 
+		
+	if (!is_set("QUIET"))
+	{
+		fprintf (stderr,
+		"%s Population Generator (Version %d.%d.%d%s)\n",
+		get_str("PROG"), VERSION, RELEASE, MODIFICATION, PATCH);
+	    fprintf (stderr, "Copyright %s %s\n", COPYRIGHT, C_DATES);
+	}
+
+	/**
+	** actual data generation section starts here
+	**/
+	
+	/*
+	* do any global (non-worker thread) initialization
+	*/
+#ifndef NOLOAD
+	if (is_set("DBLOAD"))
+		load_init();
+#endif /* NOLOAD */
+	
+	
+	
+	/***
+	* traverse the tables, invoking the appropriate data generation routine 
+	* for any to be built; skip any non-op tables or any child tables (their
+	* generation routines are called when the parent is built
+	* /
+	tname = get_str("TABLE");
+	if (strcmp(tname, "ALL"))
+	{
+		tabid = find_table("TABLE", tname);
+	}
+	else if (is_set("ABREVIATION"))
+	{
+		tabid = find_table("ABREVIATION", get_str("ABREVIATION"));
+	}*/
+
+	//for (i=(is_set("UPDATE"))?S_BRAND:CALL_CENTER; (pT = getSimpleTdefsByNumber(i)); i++)
+	{
+
+      /*if (!pT->name)
+         break;
+      if (!is_set("UPDATE") && (i == S_BRAND))
+         break;
+
+      pF = getTdefFunctionsByNumber(i);
+
+		if (pT->flags & FL_NOP)
+		{
+			if (tabid == i)
+				ReportErrorNoLine(QERR_TABLE_NOP, pT->name, 1);
+			continue;	/* skip any tables that are not implemented * /	
+		}
+		if (pT->flags & FL_CHILD)
+		{
+			if (tabid == i)
+				ReportErrorNoLine(QERR_TABLE_CHILD, pT->name, 1);
+			continue;	/* children are generated by the parent call * /	
+		}
+		if ((tabid != -1) && (i != tabid))
+			continue;	/* only generate a table that is explicitly named */
+
+	/* 
+ 	 * all source tables require the -update option to be set
+	 * /
+	if ((pT->flags & FL_SOURCE_DDL) && (is_set("UPDATE") == 0))
+	{
+		ReportErrorNoLine(QERR_TABLE_UPDATE, pT->name, 1);
+		continue;	/* update tables require update option * /
+	}*/
+
+		
+		/*
+		 * data validation is a special case 
+		 */
+		if (0 && is_set("VALIDATE"))
+		{
+			if (pF->validate == NULL)
+				continue;
+
+			kRowCount = get_rowcount(i);
+
+			kValidateCount = get_int("VCOUNT");
+			if ((kRowCount > 0) && (kValidateCount > kRowCount))
+			{
+				kValidateCount = kRowCount;
+			}
+
+		    if (!is_set("RNGSEED"))
+		    {
+		    	ftime(&t);
+		    	setSeed(VALIDATE_STREAM, t.millitm);
+		    } else {
+		    	setSeed(VALIDATE_STREAM, get_int("RNGSEED"));
+		    }
+            print_start(i);
+
+			for (; kValidateCount; kValidateCount--)
+			{
+				genrand_key(&kRandomRow, DIST_UNIFORM, 1, kRowCount, 0, VALIDATE_STREAM); 
+				pF->validate(i, kRandomRow, NULL);
+                if (!(pT->flags & FL_VPRINT))
+                    printValidation(i, kRandomRow);
+			}
+
+			print_close(i);
+		}
+		else
+		{
+		    /**
+		     * GENERAL CASE
+		     * if there are no rows to build, then loop
+		     */
+            split_work(i, &kFirstRow, &kRowCount);
+            /*
+            * if there are rows to skip then skip them 
+            */
+            if (kFirstRow != 1)
+            {
+               row_skip(i, (int)(kFirstRow - 1));
+               if (pT->flags & FL_PARENT)
+                 row_skip(pT->nParam, (int)(kFirstRow - 1));
+            }
+         
+            /*
+            * now build the actual rows
+            */
+            gen_tbl(i, kFirstRow, kRowCount);
 		}
 	}
 

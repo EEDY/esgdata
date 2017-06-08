@@ -153,6 +153,25 @@ strtodate(char *str)
 
 	return(res);
 }
+
+
+int
+esg_strtodate(date_t *dest, char *str)
+{
+    if (NULL == dest)
+        return -1;
+
+	if (sscanf(str, "%d-%d-%d", &dest->year, &dest->month, &dest->day) != 3)
+	{
+		INTERNAL("Badly formed string in call to strtodate()");
+        return -1;
+	}
+	dest->flags = 0;
+	dest->julian = dttoj(dest);
+
+	return 1;
+}
+
 /*
  * Routine: jtodt(int src, date_t *dest)
  * Purpose: convert a number of julian days to a date_t

@@ -6,6 +6,9 @@
 
 #define CUS_NAME_LEN  64
 #define CUS_NUM_LEN   128
+#define CUS_PATH_LEN  512
+#define CUS_CANDIDATE_LEN 256
+#define CUS_MAX_COLUMNS  256
 
 enum cus_types
 {
@@ -32,16 +35,18 @@ enum cus_types
 	
 };
 
+
 typedef struct CUS_COLUMN
 {
 	char col_name[CUS_NAME_LEN];
-	long long type;
-	long long length;
-	long long precision;
-	long long scale;
+	int type;
+	int length;
+	int precision;
+	int scale;
+	int nullable;
 	char min[CUS_NUM_LEN];
 	char max[CUS_NUM_LEN];
-	long long seq ;
+	long long seq;
 	
 } cus_col_t;
 
@@ -51,15 +56,25 @@ typedef struct CUS_TABLE
 {
 	char tal_name[CUS_NAME_LEN];
 	int col_num;
-	cus_col_t *cols; // = malloc(col_num * sizeof(cus_col_t))
-	
+	cus_col_t cols[CUS_MAX_COLUMNS]; // = malloc(col_num * sizeof(cus_col_t))
+	char file_path[CUS_PATH_LEN];
+	FILE *outfile;
+	int flags;
 } cus_table_t;
 
 
 
-rng_t *Streams = NULL;
+rng_t Streams[CUS_MAX_COLUMNS];
 
 
+
+extern cus_table_t* esg_gen_table();
+extern void esg_gen_stream(cus_table_t *tal);
+extern void esg_gen_data(cus_table_t *tab);
+
+#ifdef ESG_TEST
+extern cus_table_t* esg_gen_table()
+#endif
 
 #endif
 
