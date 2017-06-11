@@ -64,17 +64,16 @@ typedef struct CUS_TABLE
 
 
 
-rng_t Streams[CUS_MAX_COLUMNS];
+extern rng_t Streams[];
 
 
 
 extern cus_table_t* esg_gen_table();
 extern void esg_gen_stream(cus_table_t *tal);
-extern void esg_gen_data(cus_table_t *tab);
+extern void esg_gen_data(cus_table_t *tab, ds_key_t, ds_key_t);
 
-#ifdef ESG_TEST
-extern cus_table_t* esg_gen_table()
-#endif
+extern cus_table_t* esg_gen_table();
+
 
 #endif
 

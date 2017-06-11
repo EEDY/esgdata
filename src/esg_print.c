@@ -1,9 +1,13 @@
+#include "config.h"
+#include "porting.h"
+#include <stdio.h>
 #ifdef WIN32
 #include <io.h>
 #else
 #include <unistd.h>
 #endif
 #include "r_params.h"
+#include "genrand.h"
 #include "esg_custom_table.h"
 #include "date.h"
 #include "decimal.h"
@@ -29,8 +33,8 @@ esg_print_close(cus_table_t *table)
 		table->outfile = NULL;
 	}
 
-	if (table->flags & FL_PARENT)
-      print_close(pTdef->nParam);
+	/*if (table->flags & FL_PARENT)
+      esg_print_close(pTdef->nParam);*/
 
 	return;
 }
@@ -85,7 +89,7 @@ esg_print_integer (int nColumn, int val, int sep)
 		fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 		exit(-1);
 	}
-	print_separator (sep);
+	esg_print_separator (sep);
 	
 	return;
 }
@@ -111,7 +115,7 @@ esg_print_varchar (int nColumn, char *val, int sep)
 				exit(-1);
 			}
 	}
-	print_separator (sep);
+	esg_print_separator (sep);
 	
    return;
 }
@@ -126,7 +130,7 @@ esg_print_char (int nColumn, char val, int sep)
 		exit(-1);
 	}
 
-	print_separator (sep);
+	esg_print_separator (sep);
 
    return;
 }
@@ -134,17 +138,17 @@ esg_print_char (int nColumn, char val, int sep)
 void
 esg_print_date (int nColumn, date_t *val, int sep)
 {
-	if (NULL != vals)
+	if (NULL != val)
 	{
-		if (fwrite(dttostr(&dTemp), 1, 10, pFile) != 10)
+		if (fwrite(dttostr(val), 1, 10, fpOutfile) != 10)
 		{
 			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 			exit(-1);
 		}
 	}
 
-	print_separator (sep);
-	   
+	esg_print_separator (sep);
+
 	return;
 }
 
@@ -164,7 +168,7 @@ esg_print_time (int nColumn, ds_key_t val, int sep)
 		fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
 	}
 
-	print_separator (sep);
+	esg_print_separator (sep);
 	   
 	return;
 }
@@ -189,7 +193,7 @@ esg_print_decimal (int nColumn, decimal_t * val, int sep)
 	    }
     }
 
-	print_separator (sep);
+	esg_print_separator (sep);
 	
 	return;
 }
@@ -206,7 +210,7 @@ esg_print_key (int nColumn, ds_key_t val, int sep)
 		}
 	}
 
-	print_separator (sep);
+	esg_print_separator (sep);
 	
 	return;
 }
@@ -232,7 +236,7 @@ esg_print_id (int nColumn, ds_key_t val, int sep)
             }
   }
 
-  print_separator (sep);
+  esg_print_separator (sep);
    
    return;
 }
@@ -251,7 +255,7 @@ esg_print_boolean (int nColumn, int val, int sep)
 			exit(-1);
 		}
 
-	print_separator (sep);
+	esg_print_separator (sep);
 
 	return;
 }
@@ -289,18 +293,18 @@ esg_print_start (cus_table_t *table)
 		   if (is_set("PARALLEL"))
 			   sprintf (path, "%s%c%s_%d_%d%s",
 			   get_str ("DIR"),
-			   PATH_SEP, getTableNameByID (tbl), 
+			   PATH_SEP, table->tal_name, 
 			   get_int("CHILD"), get_int("PARALLEL"), (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
 		   else 
 		   {
 			   if (is_set("UPDATE"))
 				   sprintf (path, "%s%c%s_%d%s",
 				   get_str ("DIR"),
-				   PATH_SEP, getTableNameByID (tbl), get_int("UPDATE"), (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
+				   PATH_SEP, table->tal_name, get_int("UPDATE"), (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
 			   else
 				   sprintf (path, "%s%c%s%s",
 				   get_str ("DIR"),
-				   PATH_SEP, getTableNameByID (tbl), (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
+				   PATH_SEP, table->tal_name, (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
 		   }
 		   if ((access (path, F_OK) != -1) && !is_set ("FORCE"))
 		   {
@@ -332,7 +336,7 @@ esg_print_start (cus_table_t *table)
      }
 #endif
 
-   table->flags |= FL_OPEN;
+   table->flags |= 0x0008;//FL_OPEN;
 
    return (0);
 }
@@ -352,7 +356,7 @@ esg_print_start (cus_table_t *table)
 * TODO: None
 */
 int
-esg_print_end (cus_table_t table)
+esg_print_end (cus_table_t *table)
 {
    int res = 0;
    static int init = 0;
@@ -365,6 +369,7 @@ esg_print_end (cus_table_t table)
           {
              strncpy (term, get_str ("DELIMITER"), 9);
              add_term = strlen(term);
+             add_term = 0;//do not need term for a row end for now
           }
         init = 1;
      }
@@ -468,7 +473,7 @@ esg_print_null(int nColumn, int sep)
         fwrite("NULL", 1, 4, fpOutfile);
     }
 
-	print_separator (sep);
+	esg_print_separator (sep);
 }
 
 

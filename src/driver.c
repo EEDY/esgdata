@@ -595,11 +595,10 @@ main (int ac, char **av)
 	process_options (ac, av);
 	validate_options();
 
-#ifdef ESG_TEST
     table = esg_gen_table();
-#endif
-    
-	init_rand_cus(table->col_num);
+
+    esg_gen_stream(table);
+    init_rand_cus(table->col_num);
 
 
 	/* build command line argument string */
@@ -607,7 +606,7 @@ main (int ac, char **av)
 	for (i=1; i < ac; i++)
 	{
 		nArgLength = strlen(av[i]) + 1;
-		if ((nCommandLineLength + nArgLength) >= 200)
+		if ((nCommandLineLength + nArgLength) >= 500)
 		{
 			ReportError(QERR_CMDLINE_TOO_LONG, NULL, 0);
 			break;
@@ -617,7 +616,7 @@ main (int ac, char **av)
 		nCommandLineLength += nArgLength;
 	}
 
-   if (is_set("UPDATE"))
+   if (0 && is_set("UPDATE"))
    {
       setUpdateDates();
       setUpdateScaling(S_PURCHASE);
@@ -707,12 +706,13 @@ main (int ac, char **av)
 		/*
 		 * data validation is a special case 
 		 */
-		if (0 && is_set("VALIDATE"))
+		/*if (0 && is_set("VALIDATE"))
 		{
 			if (pF->validate == NULL)
 				continue;
 
-			kRowCount = get_rowcount(i);
+			//kRowCount = get_rowcount(i);
+            kRowCount = get_int("RCOUNT");
 
 			kValidateCount = get_int("VCOUNT");
 			if ((kRowCount > 0) && (kValidateCount > kRowCount))
@@ -739,27 +739,27 @@ main (int ac, char **av)
 
 			print_close(i);
 		}
-		else
+		else*/
 		{
 		    /**
 		     * GENERAL CASE
 		     * if there are no rows to build, then loop
 		     */
-            split_work(i, &kFirstRow, &kRowCount);
+            esg_split_work(&kFirstRow, &kRowCount);
             /*
             * if there are rows to skip then skip them 
             */
             if (kFirstRow != 1)
             {
-               row_skip(i, (int)(kFirstRow - 1));
-               if (pT->flags & FL_PARENT)
-                 row_skip(pT->nParam, (int)(kFirstRow - 1));
+               row_skip(1, (int)(kFirstRow - 1));
+               /*if (table->flags & FL_PARENT)
+                 row_skip(pT->nParam, (int)(kFirstRow - 1));*/
             }
          
             /*
             * now build the actual rows
             */
-            gen_tbl(i, kFirstRow, kRowCount);
+            esg_gen_data(table, kFirstRow, kRowCount);
 		}
 	}
 

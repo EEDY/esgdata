@@ -80,4 +80,6 @@ int	genrand_url(char *pDest, int nColumn);
 int	setSeed(int nStream, int nValue);
 void resetSeeds(int nTable);
 
+int genrand_boolean(int *pDest, int nColumn);
+
 #endif
