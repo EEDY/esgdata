@@ -275,33 +275,33 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
 
 void esg_gen_stream(cus_table_t *table)
 {
-	rng_t stream;
+	rng_t *stream;
     int idx;
 
     memset(Streams, 0, CUS_MAX_COLUMNS * sizeof(rng_t));
 
     for (idx = 1; idx < table->col_num + 1; idx++)
     {
-        stream = Streams[idx];
+        stream = &Streams[idx];
 
-        stream.nUsed = 0;
-        stream.nUsedPerRow = 1;
-        stream.nSeed = 0;
-        stream.nInitialSeed = 0;
-        stream.nColumn = idx;
-        stream.nTable = 1;//fix to 1
-        stream.nDuplicateOf = stream.nColumn;
+        stream->nUsed = 0;
+        stream->nUsedPerRow = 1;
+        stream->nSeed = 0;
+        stream->nInitialSeed = 0;
+        stream->nColumn = idx;
+        stream->nTable = 1;//fix to 1
+        stream->nDuplicateOf = stream->nColumn;
         
     }
 
-    stream = Streams[idx];
-    stream.nUsed = -1;
-    stream.nUsedPerRow = -1;
-    stream.nSeed = -1;
-    stream.nInitialSeed = -1;
-    stream.nColumn = -1;
-    stream.nTable = -1;
-    stream.nDuplicateOf = -1;
+    stream = &Streams[idx];
+    stream->nUsed = -1;
+    stream->nUsedPerRow = -1;
+    stream->nSeed = -1;
+    stream->nInitialSeed = -1;
+    stream->nColumn = -1;
+    stream->nTable = -1;
+    stream->nDuplicateOf = -1;
 	
 }
 

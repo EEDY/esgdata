@@ -615,7 +615,7 @@ init_rand_cus (int col_num)
 	   else
 		   nSeed = RNG_SEED;
         skip = MAXINT / col_num;
-        for (i = 0; i < col_num; i++)
+        for (i = 0; i < col_num + 1; i++)
           {
              Streams[i].nInitialSeed = nSeed + skip * i;
              Streams[i].nSeed = nSeed + skip * i;
