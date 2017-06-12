@@ -12,6 +12,7 @@
 
 enum cus_types
 {
+	CUS_SEQ,
 	CUS_INT,
 	CUS_CHAR,
 	CUS_DECIMAL,

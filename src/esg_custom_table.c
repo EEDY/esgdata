@@ -77,7 +77,7 @@ int esg_init_col(cus_col_t *col, char *name, int type, int len, int nullable, in
 }
 
 
-void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count)
+void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 {
 
     int isLastCol = col_num == col_count;
@@ -93,6 +93,11 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count)
     
 	switch(col->type)
 	{
+        case CUS_SEQ:
+            
+            esg_print_key(col_num, row_num + col->seq, !isLastCol);
+            break;
+
 		case CUS_INT:
 
             if (strlen(col->min) > 0)
@@ -129,7 +134,7 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count)
             if (strlen(col->min) > 0)
                 esg_strtodate(&buffer.uDateComb.min, col->min);
             else
-                esg_strtodate(&buffer.uDateComb.min, "2011-1-1");
+                esg_strtodate(&buffer.uDateComb.min, "1999-1-1");
 
             if (strlen(col->max) > 0)
                 esg_strtodate(&buffer.uDateComb.max, col->max);
@@ -140,10 +145,13 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count)
             esg_print_date(col_num, &buffer.uDateComb.val, !isLastCol);
             break;
             
+		case CUS_EMAIL:
+            
 		case CUS_TIME:
 		case CUS_TIMESTAMP:
 		case CUS_RANDOM:
-		case CUS_EMAIL:
+
+            
 		case CUS_INT_YEAR:
 		case CUS_INT_MONTH:
 		case CUS_INT_DAY:
@@ -260,7 +268,7 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
 			row_stop(tabid);*/
 		for (col_idx = 0; col_idx < table->col_num; col_idx++)
 		{
-            esg_mk_pr_col(table->cols + col_idx, col_idx + 1, table->col_num);
+            esg_mk_pr_col(table->cols + col_idx, col_idx + 1, table->col_num, i);
 		}
         esg_checkSeeds(1, table->col_num);
         esg_print_end(table);
