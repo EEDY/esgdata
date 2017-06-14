@@ -136,8 +136,8 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MIN:
-                if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
-                {
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
+				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MIN);
 					if (NULL != pstr)
 					{
@@ -149,12 +149,12 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 					{
 						col->min[0] = '\0';
 					}
-                }
+				}
 				break;
 
 			case COL_TYPE_MAX:
-                if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
-                {
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
+				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MAX);
 					if (NULL != pstr)
 					{
@@ -181,27 +181,27 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 					{
 						col->max[0] = '\0';
 					}
-                }
+				}
 				break;
 
 			case COL_SEQ_START:
-                if (col->type == CUS_INT)
-                {
-	                pstr = excel_format_get_string(sheet, col_num, COL_SEQ_START);
+				if (col->type == CUS_INT)
+				{
+					pstr = excel_format_get_string(sheet, col_num, COL_SEQ_START);
 					if (NULL != pstr)
 					{
 						col->seq = malloc(sizeof (*(col->seq)));
-	                    col->seq = atoll(pstr);
-	                    col->type = CUS_SEQ;
+						*(col->seq) = atoll(pstr);
+						col->type = CUS_SEQ;
 						esg_debug_printf("DEBUG: get seq start %lld.\n", col->seq);
 					}
 					else
 					{
 						col->seq = NULL;
 					}
-                }
+				}
 				break;
-                
+
 			case COL_CONTENT:
 			case COL_NOTE:
 				//not implelemented
