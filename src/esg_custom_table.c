@@ -73,7 +73,8 @@ int esg_init_col(cus_col_t *col, char *name, int type, int len, int nullable, in
     else
         col->max[0] = '\0';
     
-	col->seq = seq;
+    col->seq = malloc(sizeof (*(col->seq)));
+    *(col->seq) = seq;
 }
 
 
@@ -94,8 +95,8 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 	switch(col->type)
 	{
         case CUS_SEQ:
-            
-            esg_print_key(col_num, row_num + col->seq, !isLastCol);
+            assert(col->seq != NULL);
+            esg_print_key(col_num, row_num + *(col->seq), !isLastCol);
             break;
 
 		case CUS_INT:
@@ -164,7 +165,7 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 		case CUS_INT_HM:
 		case CUS_INT_MS:
         default:
-            assert(1);
+            assert(0);
             break;
 		
 		
@@ -368,6 +369,16 @@ esg_split_work (ds_key_t * pkFirstRow, ds_key_t * pkRowCount)
 
 
 cus_table_t* esg_gen_table()
+{
+	cus_table_t *tab = malloc(sizeof(cus_table_t));
+    assert(tab != NULL);
+
+    memset(tab, 0, sizeof(cus_table_t));
+
+    return tab;
+}
+
+cus_table_t* esg_gen_table_test()
 {
 	cus_table_t *tab = malloc(sizeof(cus_table_t));
     assert(tab != NULL);

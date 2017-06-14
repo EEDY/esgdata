@@ -43,6 +43,62 @@ int excel_format_destroy()
 	return 0;
 }
 
+
+int excel_format_get_sheet_name(int sheet, char *name)
+{
+	BasicExcelWorksheet* p_sheet = NULL;
+
+	if (NULL == xls)
+		return -1;
+
+	p_sheet = xls->GetWorksheet(sheet);
+	if (NULL == p_sheet)
+	{
+		return -2;
+	}
+
+	if (false == p_sheet->GetSheetName(name))
+	{
+		return -3;
+	}
+
+
+	return 0;
+}
+
+
+int excel_format_get_total_rows(int sheet)
+{
+	BasicExcelWorksheet* p_sheet = NULL;
+
+	if (NULL == xls)
+		return -1;
+
+	p_sheet = xls->GetWorksheet(sheet);
+	if (NULL == p_sheet)
+	{
+		return -2;
+	}
+
+	return p_sheet->GetTotalRows();
+}
+
+int excel_format_get_total_cols(int sheet)
+{
+	BasicExcelWorksheet* p_sheet = NULL;
+
+	if (NULL == xls)
+		return -1;
+
+	p_sheet = xls->GetWorksheet(sheet);
+	if (NULL == p_sheet)
+	{
+		return -2;
+	}
+
+	return p_sheet->GetTotalCols();
+}
+
 int excel_format_get_sheet_num()
 {
 	return xls->GetTotalWorkSheets();
@@ -71,12 +127,12 @@ int excel_format_get_int(int sheet, int row, int col)
 	BasicExcelWorksheet* p_sheet = NULL;
 
 	if (NULL == xls)
-		return NULL;
+		return 0;
 
 	p_sheet = xls->GetWorksheet(sheet);
 	if (NULL == p_sheet)
 	{
-		return NULL;
+		return 0;
 	}
 
 	BasicExcelCell* cell = p_sheet->Cell(row, col);
@@ -90,12 +146,12 @@ double excel_format_get_double(int sheet, int row, int col)
 	BasicExcelWorksheet* p_sheet = NULL;
 
 	if (NULL == xls)
-		return NULL;
+		return 0;
 
 	p_sheet = xls->GetWorksheet(sheet);
 	if (NULL == p_sheet)
 	{
-		return NULL;
+		return 0;
 	}
 
 	BasicExcelCell* cell = p_sheet->Cell(row, col);

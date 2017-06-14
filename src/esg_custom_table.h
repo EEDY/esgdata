@@ -12,7 +12,7 @@
 
 enum cus_types
 {
-	CUS_SEQ,
+	CUS_SEQ = 10,
 	CUS_INT,
 	CUS_CHAR,
 	CUS_DECIMAL,
@@ -31,9 +31,9 @@ enum cus_types
 	CUS_INT_MD, //INTERVAL TYPE FOR MONTH TO DAY
 	CUS_INT_DH, //INTERVAL TYPE FOR DAY TO HOUR
 	CUS_INT_HM, //INTERVAL TYPE FOR HOUR TO MINUTE
-	CUS_INT_MS //INTERVAL TYPE FOR MINUTE TO SECOND
+	CUS_INT_MS, //INTERVAL TYPE FOR MINUTE TO SECOND
 	
-	
+	CUS_UNKNOWN
 };
 
 
@@ -44,10 +44,11 @@ typedef struct CUS_COLUMN
 	int length;
 	int precision;
 	int scale;
-	int nullable;
+	int pk;//bool - [0/1]
+	int nullable;//bool
 	char min[CUS_NUM_LEN];
 	char max[CUS_NUM_LEN];
-	long long seq;
+	long long *seq;
 	
 } cus_col_t;
 
@@ -58,15 +59,14 @@ typedef struct CUS_TABLE
 	char tal_name[CUS_NAME_LEN];
 	int col_num;
 	cus_col_t cols[CUS_MAX_COLUMNS]; // = malloc(col_num * sizeof(cus_col_t))
-	char file_path[CUS_PATH_LEN];
+	char *ddl_excel;
+	char data_file[CUS_PATH_LEN];
 	FILE *outfile;
 	int flags;
 } cus_table_t;
 
 
-
 extern rng_t Streams[];
-
 
 
 extern cus_table_t* esg_gen_table();

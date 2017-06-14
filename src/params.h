@@ -67,7 +67,8 @@ option_t options[] =
 {"VSUFFIX",		OPT_STR|OPT_ADV,	23, "set file suffix for data validation", NULL, ".vld"}, 
 {"RNGSEED",		OPT_INT|OPT_ADV,	24, "set RNG seed", NULL, "19620718"}, 
 
-{"RCOUNT",		OPT_INT|OPT_ADV,	24, "set RNG seed", NULL, "10000"}, 
+{"RCOUNT",		OPT_INT|OPT_ADV,	25, "set total row count", NULL, "10000"}, 
+{"INPUT",		OPT_STR|OPT_ADV,	26, "set INPUT DDL excel file", NULL, ""}, 
 {NULL}
 };
 

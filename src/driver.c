@@ -53,6 +53,7 @@
 #include "decimal.h"
 #include "genrand.h"
 #include "esg_custom_table.h"
+#include "esg_excel_parser.h"
 #include "tdefs.h"
 #include "tdef_functions.h"
 #include "build_support.h"
@@ -590,14 +591,25 @@ main (int ac, char **av)
 		kValidateCount;
 	struct timeb t;
    
-   cus_table_t* table;
+   cus_table_t* table = NULL;
 	
 	process_options (ac, av);
 	validate_options();
 
     table = esg_gen_table();
+    
+    /* must set a input DDL excel file, old version 97-03 */
+    if (!is_set("INPUT") || (table->ddl_excel = get_str("INPUT")) == NULL)
+    {
+        fprintf(stderr, "Need to set parameter -INPUT to set specify a DDL excel file.\n");
+        exit(-1);
+    }
+    esg_excel_init(table->ddl_excel);
+
+    esg_excel_parsefile(table);
 
     esg_gen_stream(table);
+    
     init_rand_cus(table->col_num);
 
 
