@@ -252,6 +252,19 @@ get_int(char *var)
 		return(0);
 }
 
+long long 
+get_ll(char *var)
+{
+    int nParam;
+    
+    init_params();
+	nParam = fnd_param(var);
+    if (nParam >= 0)
+		return(atoll(params[options[nParam].index]));
+	else
+		return(0);
+}
+
 /*
  * Routine: set_str(int var, char *value)
  * Purpose: set a character parameter

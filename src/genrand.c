@@ -601,6 +601,32 @@ init_rand (void)
 }
 
 void
+init_rand_cus (int col_num)
+{
+   static int bInit = 0;
+   int i,
+	skip,
+	nSeed;
+
+   if (!bInit)
+     {
+	   if (is_set("RNGSEED"))
+		   nSeed =  get_int("RNGSEED");
+	   else
+		   nSeed = RNG_SEED;
+        skip = MAXINT / col_num;
+        for (i = 0; i < col_num + 1; i++)
+          {
+             Streams[i].nInitialSeed = nSeed + skip * i;
+             Streams[i].nSeed = nSeed + skip * i;
+             Streams[i].nUsed = 0;
+          }
+        bInit = 1;
+     }
+   return;
+}
+
+void
 resetSeeds(int nTable)
 {
 	int i;
@@ -690,6 +716,17 @@ genrand_url (char *pDest, int nColumn)
    strcpy (pDest, "http://www.foo.com");
 
    return (0);
+}
+
+/* 2/3 false, 1/3 true */
+int genrand_boolean(int *pDest, int nColumn)
+{
+    int bool = genrand_integer(NULL, DIST_UNIFORM, 0, 2, 0, nColumn);
+
+    if (NULL != pDest)
+        *pDest = bool;
+
+    return !bool;
 }
 
 /*

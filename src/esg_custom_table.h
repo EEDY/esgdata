@@ -6,9 +6,13 @@
 
 #define CUS_NAME_LEN  64
 #define CUS_NUM_LEN   128
+#define CUS_PATH_LEN  512
+#define CUS_CANDIDATE_LEN 256
+#define CUS_MAX_COLUMNS  256
 
 enum cus_types
 {
+	CUS_SEQ = 10,
 	CUS_INT,
 	CUS_CHAR,
 	CUS_DECIMAL,
@@ -27,21 +31,24 @@ enum cus_types
 	CUS_INT_MD, //INTERVAL TYPE FOR MONTH TO DAY
 	CUS_INT_DH, //INTERVAL TYPE FOR DAY TO HOUR
 	CUS_INT_HM, //INTERVAL TYPE FOR HOUR TO MINUTE
-	CUS_INT_MS //INTERVAL TYPE FOR MINUTE TO SECOND
+	CUS_INT_MS, //INTERVAL TYPE FOR MINUTE TO SECOND
 	
-	
+	CUS_UNKNOWN
 };
+
 
 typedef struct CUS_COLUMN
 {
 	char col_name[CUS_NAME_LEN];
-	long long type;
-	long long length;
-	long long precision;
-	long long scale;
+	int type;
+	int length;
+	int precision;
+	int scale;
+	int pk;//bool - [0/1]
+	int nullable;//bool
 	char min[CUS_NUM_LEN];
 	char max[CUS_NUM_LEN];
-	long long seq ;
+	long long *seq;
 	
 } cus_col_t;
 
@@ -51,14 +58,22 @@ typedef struct CUS_TABLE
 {
 	char tal_name[CUS_NAME_LEN];
 	int col_num;
-	cus_col_t *cols; // = malloc(col_num * sizeof(cus_col_t))
-	
+	cus_col_t cols[CUS_MAX_COLUMNS]; // = malloc(col_num * sizeof(cus_col_t))
+	char *ddl_excel;
+	char data_file[CUS_PATH_LEN];
+	FILE *outfile;
+	int flags;
 } cus_table_t;
 
 
+extern rng_t Streams[];
 
-rng_t *Streams = NULL;
 
+extern cus_table_t* esg_gen_table();
+extern void esg_gen_stream(cus_table_t *tal);
+extern void esg_gen_data(cus_table_t *tab, ds_key_t, ds_key_t);
+
+extern cus_table_t* esg_gen_table();
 
 
 #endif

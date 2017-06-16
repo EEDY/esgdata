@@ -70,6 +70,7 @@ ds_key_t	genrand_key(ds_key_t *dest, int dist, ds_key_t min, ds_key_t max, ds_ke
 int		gen_charset(char *dest, char *set, int min, int max, int stream);
 int	dump_seeds(int tbl);
 void	init_rand(void);
+void	init_rand_cus(int);
 void	skip_random(int s, ds_key_t count);
 int	RNGReset(int nTable);
 long	next_random(int nStream);
@@ -78,5 +79,7 @@ void	genrand_ipaddr(char *pDest, int nColumn);
 int	genrand_url(char *pDest, int nColumn);
 int	setSeed(int nStream, int nValue);
 void resetSeeds(int nTable);
+
+int genrand_boolean(int *pDest, int nColumn);
 
 #endif

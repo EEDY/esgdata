@@ -66,6 +66,7 @@ int	process_options(int count, char **args);
 char	*get_str(char *var);
 void	set_str(char *param, char *value);
 int		get_int(char *var);
+long long get_ll(char *var);
 void	set_int(char *var, char *val);
 int		is_set(char *flag);
 void	clr_flg(char *flag);
