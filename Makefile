@@ -1,7 +1,7 @@
 
 
 all:
-	cd lib && make -f Makefile.lib
+	cd lib && make
 	cd ..
 	@echo "Building esgen"
 	cd src && make -f Makefile.suite
@@ -13,5 +13,5 @@ clean:
 	rm -f ./esgen ./tpcds.idx
 	cd src && make -f Makefile.suite clean
 	cd ..
-	cd lib && make -f Makefile.lib clean
+	cd lib && make clean
 	cd ..
