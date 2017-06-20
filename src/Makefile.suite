@@ -52,6 +52,7 @@ NCR_CC		= cc
 SOLARIS_CC	= gcc
 SOL86_CC	= cc
 CC		= $($(OS)_CC)
+C++   = g++
 # CFLAGS
 AIX_CFLAGS		= -q64 -O3 -D_LARGE_FILES
 HPUX_CFLAGS		= -O3 -Wall
@@ -236,7 +237,7 @@ $(LIB_DIR):
 	ln -s -f ../lib lib
 
 $(PROG1): $(OBJ1) $(IDX)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LIBS)  $(LIBS_ESG) -Wl,-rpath,./lib
+	$(C++) $(CFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LIBS)  $(LIBS_ESG) -Wl,-rpath,./lib
 $(PROG2): $(OBJ2)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG2) $(OBJ2) $(LIBS)
 $(PROG3): $(OBJ3)
