@@ -183,16 +183,16 @@ def gen_data_thread(excel, dir, node, rcount, child, parallel):
     cmd2_to_utf8 = "bash {0}/../convert_to_utf8.sh {1}/{2}_{4}_{5}.dat ; bash {0}/../convert_to_utf8.sh {1}/{3}_{4}_{5}.dat ;".format(
                                      TPCDS_ROOT, diskdir, table, table.replace("sales", "returns"), child, DSDGEN_TOTAL_THREADS)'''
 
-  #fail, output = run_linux_cmd(cmd, node)
+  fail, output = run_linux_cmd(cmd, node)
 
-  #if fail == 1:
-  #  logger.info("*** ERROR *** Generate data cmd failed: " + cmd)
-  #  logger.info("*** ERROR *** Detail Error Info : " + ''.join(output))
+  if fail == 1:
+    logger.info("*** ERROR *** Generate data cmd failed: " + cmd)
+    logger.info("*** ERROR *** Detail Error Info : " + ''.join(output))
   '''else:
     run_linux_cmd(cmd2_to_utf8, node, True)'''
 
-  #info = "[Node: " + node + "][" + str(child) + "] generating data"
-  #return (fail, info)
+  info = "[Node: " + node + "][" + str(child) + "] generating data"
+  return (fail, info)
 
   logger.info("CMD: %s;; NODE: %s"%(cmd, node))
   return (0, ["debug"])
