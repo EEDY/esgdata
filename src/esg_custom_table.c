@@ -351,7 +351,7 @@ esg_split_work (ds_key_t * pkFirstRow, ds_key_t * pkRowCount)
   ds_key_t kTotalRows, kRowsetSize, kExtraRows;
   int nParallel, nChild;
 
-  kTotalRows = get_int("RCOUNT");
+  kTotalRows = get_ll("RCOUNT");
   nParallel = get_int ("PARALLEL");
   nChild = get_int ("CHILD");
 

@@ -5,12 +5,13 @@ import os
 logger=logging.getLogger(__name__)
 
 def read_file(file, case=None):
+  lines = list()
   try:
     file_h = open(file, 'r')
   except Exception as exp:
     print("SQL query file does not exist: "+ file) 
+    return lines 
   
-  lines = list() 
   for line in file_h.readlines():
     line = line.strip()
     if not len(line) or line.startswith('#'):
