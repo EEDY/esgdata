@@ -174,6 +174,32 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 }
 
 
+int esg_pick_nUsedPerRow(cus_col_t *col)
+{
+
+    int ret = 0;
+
+    switch (col->type)
+    {
+	    case CUS_CHAR:
+            ret = col->length;
+            break;
+            
+		case CUS_DATE:
+        case CUS_SEQ:
+		case CUS_INT:
+		case CUS_DECIMAL:
+        default:
+            ret = 1;
+            break;
+
+    }
+
+    return ret;
+}
+
+
+
 int
 esg_checkSeeds (int nFirstColumn, int nLastColumn)
 {
@@ -281,20 +307,24 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
 	return;
 }
 
-
 void esg_gen_stream(cus_table_t *table)
 {
 	rng_t *stream;
+    cus_col_t *col;
     int idx;
 
     memset(Streams, 0, CUS_MAX_COLUMNS * sizeof(rng_t));
 
-    for (idx = 1; idx < table->col_num + 1; idx++)
+    for (idx = 1, col = table->cols; idx < table->col_num + 1; idx++, col++)
     {
         stream = &Streams[idx];
 
         stream->nUsed = 0;
-        stream->nUsedPerRow = 1;
+        stream->nUsedPerRow = esg_pick_nUsedPerRow(col);
+        if (col->nullable)
+        {
+            stream->nUsedPerRow++;
+        }
         stream->nSeed = 0;
         stream->nInitialSeed = 0;
         stream->nColumn = idx;
@@ -321,7 +351,7 @@ esg_split_work (ds_key_t * pkFirstRow, ds_key_t * pkRowCount)
   ds_key_t kTotalRows, kRowsetSize, kExtraRows;
   int nParallel, nChild;
 
-  kTotalRows = get_int("RCOUNT");
+  kTotalRows = get_ll("RCOUNT");
   nParallel = get_int ("PARALLEL");
   nChild = get_int ("CHILD");
 
