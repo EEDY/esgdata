@@ -42,41 +42,52 @@ logger = logging.getLogger(__name__)
 
 
 def get_option(usage, version):
-   from optparse import OptionParser
+    from optparse import OptionParser
 
-   parser = OptionParser(usage=usage, version=version)
+    parser = OptionParser(usage=usage, version=version)
 
-   parser.add_option("-n", "--nodes", dest="nodes", default="nodes.conf",
-                     help="a file contains all hostnames of available nodes to generate data, default is 'nodes.conf'")
-   parser.add_option("-d", "--directory", dest="dirs", default="dirs.conf",
-                     help="a file contains directories where generate data locates, default is 'dirs.conf'")
-   parser.add_option("-p", "--parallel", dest="parallel", type="int", default=1,
-                     help="total generation parallel number")
-   parser.add_option("-e", "--excel-ddl", dest="excel", default=None,
-                     help="input DDL excel file")
-   parser.add_option("-c", "--row-count", dest="rcount", type="int", default=None,
-                     help="total Row count for the given table")
-   parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
-                     help="a file contains destination hdfs directories")
-   parser.add_option("-C", "--clean", action="store_true", dest="clean", default=False,
-                     help="clean all generated data files")
+    parser.add_option("-n", "--nodes", dest="nodes", default="nodes.conf",
+                      help="a file contains all hostnames of available nodes to generate data, default is 'nodes.conf'")
+    parser.add_option("-d", "--directory", dest="dirs", default="dirs.conf",
+                      help="a file contains directories where generate data locates, default is 'dirs.conf'")
+    parser.add_option("-p", "--parallel", dest="parallel", type="int", default=1,
+                      help="total generation parallel number")
+    parser.add_option("-e", "--excel-ddl", dest="excel", default=None,
+                      help="input DDL excel file")
+    parser.add_option("-c", "--row-count", dest="rcount", type="int", default=None,
+                      help="total Row count for the given table")
+    '''parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
+                      help="a file contains destination hdfs directories")'''
+    parser.add_option("-G", "--generate", action="store_true", dest="generate", default=False,
+                      help="generate data in linux")
+    parser.add_option("-P", "--put", dest="put", default=None,
+                      help="HDFS directory where to put all generated data to ")
+    parser.add_option("-T", "--putthread", dest="putthread", default=2,
+                      help="hdfs dfs -put thread per node")
+    parser.add_option("-C", "--clean", action="store_true", dest="clean", default=False,
+                      help="clean all generated data files")
 
-   options, args = parser.parse_args()
+    options, args = parser.parse_args()
 
-   if not options.excel:
-     parser.error("You must specify a DDL Excel File by '-e' option")
-     sys.exit(-1)
+    if not options.clean and not options.generate and options.put is None:
+        parser.error("You must specify at least one of options : -G, -P, -C.")
+        sys.exit(-1)
 
-   if not options.rcount:
-     parser.error("You must specify a total Row Count by '-c' option")
-     sys.exit(-1)
+    if not options.excel:
+        parser.error("You must specify a DDL Excel File by '-e' option.")
+        sys.exit(-1)
 
-   if options.hdfs and options.clean is False:
-     logger.info("data is generating to HDFS:%s" % (options.hdfs))
-   else:
-     logger.info("data is generating to DISK:%s" % (options.dirs))
+    if options.generate:
+        if not options.rcount:
+            parser.error("You must specify a total Row Count by '-c' option when generating data.")
+            sys.exit(-1)
 
-   return (options, args)
+    '''if options.hdfs and options.clean is False:
+      logger.info("data is generating to HDFS:%s" % (options.hdfs))
+    else:
+      logger.info("data is generating to DISK:%s" % (options.dirs))'''
+
+    return (options, args)
 
 
 def cluster_scp(src_path, nodes, target_path):
@@ -266,6 +277,94 @@ def gen_data(excel_file, dirs, nodes, rcount, parallel):
     logger.info("generate data DONE..")
 
 
+def put_data_to_hdfs(nodes, dirs, hdfs_dir, table):
+
+    '''check whether hdfs permission '''
+    ret, output = run_linux_cmd("hdfs dfs -mkdir -p " + hdfs_dir, nodes[-1])
+    if 0 != ret:
+        logger.error("*** run_linux_cmd *** hdfs -mkdir failed: " + output)
+        sys.exit(-11)
+
+    ret, output = run_linux_cmd("hdfs dfs -touchz " + hdfs_dir + "/esgen_test", nodes[-1])
+    if 0 == ret:
+        run_linux_cmd("hdfs dfs -rm -skipTrash " + hdfs_dir + "/esgen_test", nodes[-1])
+    else:
+        logger.error("*** run_linux_cmd *** hdfs -touchz failed: " + output)
+        sys.exit(-11)
+
+    plist = []
+    for node in nodes:
+        proc = Process(target=put_data_per_node, args=(node, dirs, hdfs_dir, table))
+        plist.append(proc)
+
+    for proc in plist:
+        proc.start()
+
+    for proc in plist:
+        proc.join()
+
+
+def put_data_per_node(node, linux_dir, hdfs_dir, table):
+    import threading
+
+    disk_num = len(linux_dir)
+    put_cmd_temp = "hdfs dfs -put %s/*.dat %s/"
+
+    '''generate put cmds first'''
+    clist = []
+
+    diskid = 0
+    while diskid < disk_num:
+        #logger.info("Trying put data for table %s on node %s:%s" % (table, node, linux_dir[diskid]))
+        logger.info("Trying put data on node %s:%s" % (node, linux_dir[diskid]))
+        put_cmd = put_cmd_temp % (linux_dir[diskid], hdfs_dir)
+        #run_linux_cmd(put_cmd, node)
+        clist.append(put_cmd)
+        diskid += 1
+
+    cmd_count = len(clist)
+    if cmd_count < 1:
+        return
+
+    #logger.info("DEBUG : %s" % ('\n'.join(clist)))
+    #return
+
+    '''execute command list in total options.putthread subprocesses'''
+    idx = 0
+    finish_count = 0
+    plist = []
+    while finish_count < cmd_count:
+        if len(plist) < options.putthread and idx < cmd_count:
+
+            thread = threading.Thread(target=run_linux_cmd, args=(clist[idx], node, True))
+            thread.start()
+            plist.append([thread, idx])
+            idx += 1
+
+            # Is it possible to avoid the sleep when we are doing dim tables
+            # (check for the type value)
+            # The sleep call below and through out the script are to avoid
+            # certain issues with Linux to launch many processes and to open
+            # many SSH connection quickly.
+            # May be this can be controlled with the pooling mechanism, if we
+            # pair the max_nproc with Ssh MaxStartups.
+            # That is, max_nproc may need to be < SshMaxStartups
+            # A permanent solution will be provided in a later time
+            time.sleep(0.1)
+
+        ''' Clone/Slice the list for looping purposes since we remove from original list '''
+        for item in plist[:]:
+            thread = item[0]
+            cmd_idx = item[1]
+
+            thread.join(0)
+            if thread.is_alive() is True:
+                continue
+
+            plist.remove(item)
+            finish_count += 1
+
+
 def check_and_put(tables, type="DIM"):
 
   put_nodes = nodes
@@ -366,7 +465,7 @@ def check_data_dir(data_dir_list, nodes):
     '''first check existence of directories'''
     for node in nodes:
         for dir in data_dir_list:
-            retcode, output = run_linux_cmd("mkdir -p " + dir, node, True)
+            retcode, output = run_linux_cmd("mkdir -p " + dir, node)
 
             if retcode != 0:
                 return (retcode, output)
@@ -374,7 +473,7 @@ def check_data_dir(data_dir_list, nodes):
     '''second check write permission'''
     for node in nodes:
         for dir in data_dir_list:
-            retcode, output = run_linux_cmd("touch -c " + dir + "/test", node, True)
+            retcode, output = run_linux_cmd("touch -c " + dir + "/test", node)
 
             if retcode != 0:
                 return (retcode, output)
@@ -408,22 +507,22 @@ def main():
     nodes = read_file(options.nodes)
     logger.info(nodes)
 
-    '''do mkdir if data directory not existing'''
-    ret, output = check_data_dir(data_dir_list, nodes)
-    if ret != 0:
-        logger.error("*** ERROR *** Data disk directory check failed : " + ''.join(output))
-        sys.exit(-1)
-
-
     '''start gen data'''
+    if options.generate:
+        '''do mkdir if data directory not existing'''
+        ret, output = check_data_dir(data_dir_list, nodes)
+        if ret != 0:
+            logger.error("*** ERROR *** Data disk directory check failed : " + ''.join(output))
+            sys.exit(-1)
 
-    if options.clean:
-        delete_data_from_linux(data_dir_list, nodes)
-    else:
         push_esgen_kit(nodes)
         gen_data(ESGEN_HOME + os.path.basename(options.excel), data_dir_list, nodes, options.rcount, options.parallel)
 
+    if options.put is not None:
+        put_data_to_hdfs(nodes, data_dir_list, options.put, None)
 
+    if options.clean:
+        delete_data_from_linux(data_dir_list, nodes)
 
 
 if __name__ == "__main__":
