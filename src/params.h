@@ -73,7 +73,7 @@ option_t options[] =
 {NULL}
 };
 
-char *params[23 + 2];
+char *params[27 + 2];
 #else
 extern option_t options[];
 extern char *params[];

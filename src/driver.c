@@ -75,7 +75,7 @@
 extern int optind, opterr;
 extern char *optarg;
 /* extern tdef w_tdefs[], s_tdefs[]; */
-char g_szCommandLine[201];
+char g_szCommandLine[512];
 file_ref_t CurrentFile;
 file_ref_t *pCurrentFile;
 
@@ -606,10 +606,11 @@ main (int ac, char **av)
     }
     if (is_set("GETSHNAME"))
     {
+        int ret=0;
         char buf[512] = "";
-        esg_excel_get_sheet_name(table->ddl_excel, buf);
+        ret = esg_excel_get_sheet_name(table->ddl_excel, buf);
         fprintf(stdout, "%s", buf);
-        exit(-1);
+        exit(ret);
     }
     
     esg_excel_init(table->ddl_excel);
