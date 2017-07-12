@@ -78,7 +78,7 @@ int esg_init_col(cus_col_t *col, char *name, int type, int len, int nullable, in
 }
 
 
-void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
+void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 {
 
     int isLastCol = col_num == col_count;
@@ -96,7 +96,7 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
 	{
         case CUS_SEQ:
             assert(col->seq != NULL);
-            esg_print_key(col_num, row_num + *(col->seq), !isLastCol);
+            io->out_key(col_num, row_num + *(col->seq), !isLastCol);
             break;
 
 		case CUS_INT:
@@ -114,12 +114,12 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
             buffer.uKey = 0;
 		    //genrand_integer(&buffer.uInt, DIST_UNIFORM, col->min, col->max, 0, col_idx);
             genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
-            esg_print_key(col_num, buffer.uKey, !isLastCol);
+            io->out_key(col_num, buffer.uKey, !isLastCol);
 		    break;
 
 	    case CUS_CHAR:
             gen_text(buffer.uStr, 1, col->length, col_num);
-            esg_print_varchar(col_num, buffer.uStr, !isLastCol);
+            io->out_varchar(col_num, buffer.uStr, !isLastCol);
             break;
             
 		case CUS_DECIMAL:
@@ -127,7 +127,7 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
             strtodec(&buffer.uDecComb.min, col->min);
             strtodec(&buffer.uDecComb.max, col->max);
             genrand_decimal(&buffer.uDecComb.val, DIST_UNIFORM, &buffer.uDecComb.min, &buffer.uDecComb.max, NULL, col_num);
-            esg_print_decimal(col_num, &buffer.uDecComb.val, !isLastCol);
+            io->out_decimal(col_num, &buffer.uDecComb.val, !isLastCol);
             break;
             
 		case CUS_DATE:
@@ -143,7 +143,7 @@ void esg_mk_pr_col(cus_col_t *col, int col_num, int col_count, ds_key_t row_num)
                 esg_strtodate(&buffer.uDateComb.max, "2017-1-1");
             
             genrand_date(&buffer.uDateComb.val, DIST_UNIFORM, &buffer.uDateComb.min, &buffer.uDateComb.max, NULL, col_num);
-            esg_print_date(col_num, &buffer.uDateComb.val, !isLastCol);
+            io->out_date(col_num, &buffer.uDateComb.val, !isLastCol);
             break;
             
 		case CUS_EMAIL:
@@ -295,7 +295,7 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
 			row_stop(tabid);*/
 		for (col_idx = 0; col_idx < table->col_num; col_idx++)
 		{
-            esg_mk_pr_col(table->cols + col_idx, col_idx + 1, table->col_num, i);
+            esg_mk_pr_col(&table->io, table->cols + col_idx, col_idx + 1, table->col_num, i);
 		}
         esg_checkSeeds(1, table->col_num);
         esg_print_end(table);
@@ -406,6 +406,35 @@ cus_table_t* esg_gen_table()
     memset(tab, 0, sizeof(cus_table_t));
 
     return tab;
+}
+
+void esg_init_io(cus_table_t *tab)
+{
+
+    if (is_set("HDFS"))
+    {
+
+        assert(1);
+    }
+    else
+    {
+        tab->io.start = esg_print_start;
+        tab->io.end = esg_print_end;
+        tab->io.close = esg_print_close;
+        tab->io.out_separator = esg_print_separator;
+        tab->io.out_integer = esg_print_integer;
+        tab->io.out_varchar = esg_print_varchar;
+        tab->io.out_char = esg_print_char;
+        tab->io.out_date = esg_print_date;
+        tab->io.out_time = esg_print_time;
+        tab->io.out_decimal = esg_print_decimal;
+        tab->io.out_key = esg_print_key;
+        tab->io.out_id = esg_print_id;
+        tab->io.out_boolean = esg_print_boolean;
+        tab->io.out_string = esg_print_string;
+        tab->io.out_null = esg_print_null;
+    }
+
 }
 
 cus_table_t* esg_gen_table_test()

@@ -70,6 +70,7 @@ option_t options[] =
 {"RCOUNT",		OPT_INT|OPT_ADV,	25, "set total row count", NULL, "10000"}, 
 {"INPUT",		OPT_STR|OPT_ADV,	26, "set INPUT DDL excel file", NULL, ""}, 
 {"GETSHNAME",	OPT_FLG,	        27, "got first sheet name from INPUT DDL excel file", NULL, "N"}, 
+{"HDFS",		OPT_FLG,	        28, "change 'DIR' option from linux fs to HDFS dfs", NULL, "N"}, 
 {NULL}
 };
 
