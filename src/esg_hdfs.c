@@ -22,6 +22,8 @@ static int current_table = -1;
 static hdfsFS dfs;
 static hdfsFile outFile;
 
+static char buffer[2048];
+
 
 void 
 esg_hdfs_close(cus_table_t *table)
@@ -32,7 +34,7 @@ esg_hdfs_close(cus_table_t *table)
 }
 
 int
-esg_print_separator (int sep)
+esg_hdfs_separator (int sep)
 {
 	int res = 0;
 	static char *pDelimiter;
@@ -46,8 +48,9 @@ esg_print_separator (int sep)
 	
 	if (sep)
 	{
-		if (fwrite(pDelimiter, 1, 1, fpOutfile) != 1)
-		{
+		//if (fwrite(pDelimiter, 1, 1, fpOutfile) != 1)
+        if (hdfsWrite(dfs, outFile, pDelimiter, strlen(pDelimiter)) != 1)
+        {
 			fprintf(stderr, "ERROR: Failed to write delimiter\n");
 			exit(-1);
 		}
@@ -73,79 +76,79 @@ esg_print_separator (int sep)
 *		20020125 cast to/from 64b is messy, assumes int/pointer are same size
 */
 void
-esg_print_integer (int nColumn, int val, int sep)
+esg_hdfs_integer (int nColumn, int val, int sep)
 {
+    buffer[0] = '\0';
+    sprintf(buffer, "%d", val);
 
-	if (fprintf (fpOutfile, "%d", val) < 0)
+	//if (fprintf (fpOutfile, "%d", val) < 0)
+    if (hdfsWrite(dfs, outFile, buffer, strlen(buffer)) < 0)
 	{
 		fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 		exit(-1);
 	}
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 	
 	return;
 }
 
 void
-esg_print_varchar (int nColumn, char *val, int sep)
+esg_hdfs_varchar (int nColumn, char *val, int sep)
 {
 	size_t nLength;
 
 	if (val != NULL)
 	{
       nLength = strlen(val);
-		
-#ifdef STR_QUOTES
-		if ((fwrite ("\"", 1, 1, fpOutfile) != 1) ||
-			(fwrite (val, 1, nLength, fpOutfile) != nLength) ||
-			(fwrite ("\"", 1, 1, fpOutfile)) != 1)
-#else
-		if (fwrite (val, 1, nLength, fpOutfile) != nLength)
-#endif
+
+		//if (fwrite (val, 1, nLength, fpOutfile) != nLength)
+		if (hdfsWrite(dfs, outFile, val, strlen(val)) != nLength)
 			{
 				fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 				exit(-1);
 			}
 	}
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 	
    return;
 }
 
 
 void
-esg_print_char (int nColumn, char val, int sep)
+esg_hdfs_char (int nColumn, char val, int sep)
 {
-	if (fwrite (&val, 1, 1, fpOutfile) != 1)
+	//if (fwrite (&val, 1, 1, fpOutfile) != 1)
+	if (hdfsWrite(dfs, outFile, &val, 1)
 	{
 		fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 		exit(-1);
 	}
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 
    return;
 }
 
 void
-esg_print_date (int nColumn, date_t *val, int sep)
+esg_hfds_date (int nColumn, date_t *val, int sep)
 {
 	if (NULL != val)
 	{
-		if (fwrite(dttostr(val), 1, 10, fpOutfile) != 10)
+		//if (fwrite(dttostr(val), 1, 10, fpOutfile) != 10)
+        if (hdfsWrite(dfs, outFile, dttostr(val), 10) != 10)
 		{
 			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 			exit(-1);
 		}
 	}
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 
 	return;
 }
 
 void
-esg_print_time (int nColumn, ds_key_t val, int sep)
+esg_hdfs_time (int nColumn, ds_key_t val, int sep)
 {
 	int nHours, nMinutes, nSeconds;
 
@@ -157,16 +160,20 @@ esg_print_time (int nColumn, ds_key_t val, int sep)
 	
 	if (val != -1)
 	{
-		fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
+        buffer="";
+        sprintf(buffer, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
+		//fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
+
+        hdfsWrite(dfs, outFile, buffer, strlen(buffer));
 	}
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 	   
 	return;
 }
 
 void
-esg_print_decimal (int nColumn, decimal_t * val, int sep)
+esg_hdfs_decimal (int nColumn, decimal_t * val, int sep)
 {
 	int i;
 	double dTemp;
@@ -178,76 +185,81 @@ esg_print_decimal (int nColumn, decimal_t * val, int sep)
 	    for (i=0; i < val->precision; i++)
 	    	dTemp /= 10.0;
 
-	    if (fprintf(fpOutfile, "%.*f", val->precision, dTemp) < 0)
+        buffer="";
+        sprintf(buffer, "%.*f", val->precision, dTemp);
+	    //if (fprintf(fpOutfile, "%.*f", val->precision, dTemp) < 0)
+	    if (hdfsWrite(dfs, outFile, buffer, strlen(buffer) ) < 0)
 	    {
 	    	fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 	    	exit(-1);
 	    }
     }
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 	
 	return;
 }
 
 void
-esg_print_key (int nColumn, ds_key_t val, int sep)
+esg_hdfs_key (int nColumn, ds_key_t val, int sep)
 {
 	if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
 	{
-		if (fprintf (fpOutfile, HUGE_FORMAT, val) < 0)
+        buffer="";
+        sprintf(buffer, HUGE_FORMAT, val);
+		//if (fprintf (fpOutfile, HUGE_FORMAT, val) < 0)
+		if (hdfsWrite(dfs,outFile, buffer, strlen(buffer)) < 0)
 		{
 			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 			exit(-1);
 		}
 	}
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 	
 	return;
 }
 
 void
-esg_print_id (int nColumn, ds_key_t val, int sep)
+esg_hdfs_id (int nColumn, ds_key_t val, int sep)
 {
    char szID[RS_BKEY + 1];
    
    if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
    {
         mk_bkey(szID, val, 0);
-#ifdef STR_QUOTES
-        if ((fwrite ("\"", 1, 1, fpOutfile) < 1) ||
-            (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY) ||
-			(fwrite ("\"", 1, 1, fpOutfile) < 1))
-#else
-            if (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY)
-#endif
+
+            //if (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY)
+            if (hdfsWrite(dfs, outFile, szID, RS_BKEY) < RS_BKEY)
             {
                fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
                exit(-1);
             }
   }
 
-  esg_print_separator (sep);
+  esg_hdfs_separator (sep);
    
    return;
 }
 
 void
-esg_print_boolean (int nColumn, int val, int sep)
+esg_hdfs_boolean (int nColumn, int val, int sep)
 {
+        int len = 0;
 
-#ifdef STR_QUOTES
-		if (fwrite ((val?"\"TRUE\"":"\"FALSE\""), 1, 3, fpOutfile) != 3)
-#else
-		if (fwrite ( ((val)?"TRUE":"FALSE"), 1, 1, fpOutfile) != 1)
-#endif
+		//if (fwrite ( ((val)?"TRUE":"FALSE"), 1, 1, fpOutfile) != 1)
+		if (val)
+            len = 4;
+        else
+            len = 5;
+
+        if (hdfsWrite(dfs, outFile, ((val)?"TRUE":"FALSE"), len) != len)
 		{
 			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 			exit(-1);
 		}
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 
 	return;
 }
@@ -273,10 +285,9 @@ esg_hdfs_start (cus_table_t *table)
     char path[256];
     //tdef *pTdef = getSimpleTdefsByNumber(tbl);
 
-
     current_table = 1;
 
-
+    dfs = hdfsConnect("default", 0);
     if (table->outfile == NULL)
     {
         if (is_set("PARALLEL"))
@@ -295,13 +306,12 @@ esg_hdfs_start (cus_table_t *table)
                     get_str ("DIR"),
                     PATH_SEP, table->tal_name, (is_set("VALIDATE"))?get_str ("VSUFFIX"):get_str ("SUFFIX"));
         }
-        if ((access (path, F_OK) != -1) && !is_set ("FORCE"))
+        if ((hdfsExists (dfs, path) == 0) && !is_set ("FORCE"))
         {
-            fprintf (stderr, "ERROR: %s exists. Either remove it or use the FORCE option to overwrite it.\n", path);
+            fprintf (stderr, "ERROR: HDFS:%s exists. Either remove it or use the FORCE option to overwrite it.\n", path);
             exit (-1);
         }
 
-        dfs = hdfsConnect("default", 0);
         outFile = hdfsOpenFile(dfs, path, O_WRONLY |O_CREAT, 0, 0, 0);
     }
 
@@ -334,7 +344,7 @@ esg_hdfs_start (cus_table_t *table)
 * TODO: None
 */
 int
-esg_print_end (cus_table_t *table)
+esg_hdfs_end (cus_table_t *table)
 {
    int res = 0;
    static int init = 0;
@@ -354,10 +364,10 @@ esg_print_end (cus_table_t *table)
 
    if (add_term)
       //fwrite(term, 1, add_term, fpOutfile);
-      hdfsWrite(dfs, outFile, (void*)buffer, strlen(buffer)+1);
+      hdfsWrite(dfs, outFile, (void*)buffer, strlen(buffer));
       
    //fprintf (fpOutfile, "\n");
-   hdfsWrite(dfs, outFile, "\n", 1+1);
+   hdfsWrite(dfs, outFile, "\n", 1);
    
    //fflush(fpOutfile);
    hdfsFlush(dfs, outFile);
@@ -379,9 +389,10 @@ esg_print_end (cus_table_t *table)
 * Side Effects:
 */
 void
-esg_print_string (char *szMessage, ds_key_t val)
+esg_hdfs_string (char *szMessage, ds_key_t val)
 {
-	if (fprintf (fpOutfile, szMessage, val) < 0)
+	//if (fprintf (fpOutfile, szMessage, val) < 0)
+    if (hdfsWrite(dfs, outFile, szMessage, strlen(szMessage)) < 0)
 	{
 		fprintf(stderr, "ERROR: Failed to write string\n");
 		exit(-1);
@@ -392,14 +403,15 @@ esg_print_string (char *szMessage, ds_key_t val)
 
 
 void
-esg_print_null(int nColumn, int sep)
+esg_hdfs_null(int nColumn, int sep)
 {
     if (is_set ("DISPLAY_NULL"))
     {
-        fwrite("NULL", 1, 4, fpOutfile);
+        //fwrite("NULL", 1, 4, fpOutfile);
+        hdfsWrite(dfs, outFile, "NULL", 4);
     }
 
-	esg_print_separator (sep);
+	esg_hdfs_separator (sep);
 }
 
 

@@ -8,6 +8,7 @@
 #include "genrand.h"
 #include "esg_custom_table.h"
 #include "esg_print.h"
+#include "esg_hdfs.h"
 
 #include "pricing.h"
 #include "r_params.h"
@@ -413,8 +414,21 @@ void esg_init_io(cus_table_t *tab)
 
     if (is_set("HDFS"))
     {
-
-        assert(1);
+        tab->io.start = esg_hdfs_start;
+        tab->io.end = esg_hdfs_end;
+        tab->io.close = esg_hdfs_close;
+        tab->io.out_separator = esg_hdfs_separator;
+        tab->io.out_integer = esg_hdfs_integer;
+        tab->io.out_varchar = esg_hdfs_varchar;
+        tab->io.out_char = esg_hdfs_char;
+        tab->io.out_date = esg_hdfs_date;
+        tab->io.out_time = esg_hdfs_time;
+        tab->io.out_decimal = esg_hdfs_decimal;
+        tab->io.out_key = esg_hdfs_key;
+        tab->io.out_id = esg_hdfs_id;
+        tab->io.out_boolean = esg_hdfs_boolean;
+        tab->io.out_string = esg_hdfs_string;
+        tab->io.out_null = esg_hdfs_null;
     }
     else
     {
