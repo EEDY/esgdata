@@ -28,22 +28,32 @@ int main(int argc, char **argv)
 
 
 
+#include <stdio.h>
+#include <string.h>
 #include "hdfs.h"
 
 int main(int argc, char **argv) {
 
+    int existence=0;
+
     hdfsFS fs = hdfsConnect("default", 0);
-    const char* writePath = "/tmp/testfile.txt";
+    const char* writePath = "/user/trafodion/testfile.txt";
+
+    existence = hdfsExists(fs, writePath);
+    printf("file %s exist? = %d\n", writePath, existence);
+
     hdfsFile writeFile = hdfsOpenFile(fs, writePath, O_WRONLY |O_CREAT, 0, 0, 0);
     if(!writeFile) {
           fprintf(stderr, "Failed to open %s for writing!\n", writePath);
           exit(-1);
     }
     char* buffer = "Hello, World!";
-    tSize num_written_bytes = hdfsWrite(fs, writeFile, (void*)buffer, strlen(buffer)+1);
+    tSize num_written_bytes = hdfsWrite(fs, writeFile, (void*)buffer, strlen(buffer));
+    printf("total write %d bytes\n", num_written_bytes);
     if (hdfsFlush(fs, writeFile)) {
            fprintf(stderr, "Failed to 'flush' %s\n", writePath);
           exit(-1);
     }
     hdfsCloseFile(fs, writeFile);
 }
+~

@@ -280,7 +280,7 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
 	}*/
 		
 
-   esg_print_start(table);
+   table->io.start(table);
    for (i=kFirstRow; kRowCount; i++,kRowCount--)
 	{
 		if (bIsVerbose && i && (i % nLifeFreq) == 0)
@@ -299,11 +299,11 @@ void esg_gen_data(cus_table_t *table, ds_key_t kFirstRow, ds_key_t kRowCount)
             esg_mk_pr_col(&table->io, table->cols + col_idx, col_idx + 1, table->col_num, i);
 		}
         esg_checkSeeds(1, table->col_num);
-        esg_print_end(table);
+        table->io.end(table);
 	}
 	if (bIsVerbose)
 			fprintf(stderr, "Done    \n");	
-	esg_print_close(table);
+	table->io.close(table);
 
 	return;
 }

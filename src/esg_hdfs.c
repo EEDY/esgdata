@@ -109,7 +109,7 @@ esg_hdfs_varchar (int nColumn, char *val, int sep)
 			}
 	}
 	esg_hdfs_separator (sep);
-	
+
    return;
 }
 
@@ -118,7 +118,7 @@ void
 esg_hdfs_char (int nColumn, char val, int sep)
 {
 	//if (fwrite (&val, 1, 1, fpOutfile) != 1)
-	if (hdfsWrite(dfs, outFile, &val, 1)
+	if (hdfsWrite(dfs, outFile, &val, 1) != 1)
 	{
 		fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 		exit(-1);
@@ -130,7 +130,7 @@ esg_hdfs_char (int nColumn, char val, int sep)
 }
 
 void
-esg_hfds_date (int nColumn, date_t *val, int sep)
+esg_hdfs_date (int nColumn, date_t *val, int sep)
 {
 	if (NULL != val)
 	{
@@ -160,7 +160,7 @@ esg_hdfs_time (int nColumn, ds_key_t val, int sep)
 	
 	if (val != -1)
 	{
-        buffer="";
+        buffer[0]='\0';
         sprintf(buffer, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
 		//fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
 
@@ -185,7 +185,7 @@ esg_hdfs_decimal (int nColumn, decimal_t * val, int sep)
 	    for (i=0; i < val->precision; i++)
 	    	dTemp /= 10.0;
 
-        buffer="";
+        buffer[0]='\0';
         sprintf(buffer, "%.*f", val->precision, dTemp);
 	    //if (fprintf(fpOutfile, "%.*f", val->precision, dTemp) < 0)
 	    if (hdfsWrite(dfs, outFile, buffer, strlen(buffer) ) < 0)
@@ -205,7 +205,7 @@ esg_hdfs_key (int nColumn, ds_key_t val, int sep)
 {
 	if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
 	{
-        buffer="";
+        buffer[0]='\0';
         sprintf(buffer, HUGE_FORMAT, val);
 		//if (fprintf (fpOutfile, HUGE_FORMAT, val) < 0)
 		if (hdfsWrite(dfs,outFile, buffer, strlen(buffer)) < 0)
