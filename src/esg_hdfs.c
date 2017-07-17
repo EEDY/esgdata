@@ -28,6 +28,7 @@ static char buffer[2048];
 void 
 esg_hdfs_close(cus_table_t *table)
 {
+    hdfsFlush(dfs, outFile);
     hdfsCloseFile(dfs, outFile);
 
 	return;
@@ -370,7 +371,7 @@ esg_hdfs_end (cus_table_t *table)
    hdfsWrite(dfs, outFile, "\n", 1);
    
    //fflush(fpOutfile);
-   hdfsFlush(dfs, outFile);
+   //hdfsFlush(dfs, outFile);
 
    return (res);
 }
