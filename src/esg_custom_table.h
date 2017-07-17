@@ -37,6 +37,28 @@ enum cus_types
 };
 
 
+struct CUS_TABLE;
+typedef struct CUS_IO_FUNC
+{
+	int  (*start) (struct CUS_TABLE *table);
+	int  (*end) (struct CUS_TABLE *table);
+	void (*close)(struct CUS_TABLE *table);
+	int  (*out_separator) (int sep);
+	void (*out_integer) (int nColumn, int val, int sep);
+	void (*out_varchar) (int nColumn, char *val, int sep);
+	void (*out_char) (int nColumn, char val, int sep);
+	void (*out_date) (int nColumn, date_t *val, int sep);
+	void (*out_time) (int nColumn, ds_key_t val, int sep);
+	void (*out_decimal) (int nColumn, decimal_t * val, int sep);
+	void (*out_key) (int nColumn, ds_key_t val, int sep);
+	void (*out_id) (int nColumn, ds_key_t val, int sep);
+	void (*out_boolean) (int nColumn, int val, int sep);
+	void (*out_string) (char *szMessage, ds_key_t val);
+	void (*out_null)(int nColumn, int sep);
+
+} cus_io_func_t;
+
+
 typedef struct CUS_COLUMN
 {
 	char col_name[CUS_NAME_LEN];
@@ -63,6 +85,7 @@ typedef struct CUS_TABLE
 	char data_file[CUS_PATH_LEN];
 	FILE *outfile;
 	int flags;
+	cus_io_func_t io;
 } cus_table_t;
 
 
@@ -74,6 +97,7 @@ extern void esg_gen_stream(cus_table_t *tal);
 extern void esg_gen_data(cus_table_t *tab, ds_key_t, ds_key_t);
 
 extern cus_table_t* esg_gen_table();
+extern void esg_init_io(cus_table_t *tab);
 
 
 #endif

@@ -613,6 +613,8 @@ main (int ac, char **av)
         exit(ret);
     }
     
+    esg_init_io(table);
+    
     esg_excel_init(table->ddl_excel);
 
     esg_excel_parsefile(table);
