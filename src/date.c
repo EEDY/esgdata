@@ -99,30 +99,31 @@ mk_date(void)
  * Side Effects:
  * TODO: None
  */
-int
-strtotime(char *str)
+int 
+esg_strtotime(time_p *dest, char *str)
 {
-	int hour, min, sec, res;
+	int hour, min, sec, precision;
+	time_p res;
 
-	if (sscanf(str, "%d:%d:%d", &hour, &min, &sec) != 3)
+	if (sscanf(str, "%d:%d:%d.%6d", &dest->hour, &dest->minute, &dest->second, &dest->precision) != 4)
 	{
-		if (sscanf(str, "%d:%d", &hour, &min) != 2)
+		if (sscanf(str, "%d:%d:%d", &dest->hour, &dest->minute, &dest->second) != 3)
 		{
 			INTERNAL("Invalid time format");
 		}
-		sec = 0;
+		&dest->precision = 0;
 	}
 
-	if (hour > 23 || hour < 0)
+	if (&dest->hour > 23 || &dest->hour < 0)
 		INTERNAL("Invalid time format");
-	if (min > 59 || min < 0)
+	if (&dest->minute > 59 || &dest->minute < 0)
 		INTERNAL("Invalid time format");
-	if (sec > 59 || sec < 0)
+	if (&dest->second > 59 || &dest->second < 0)
 		INTERNAL("Invalid time format");
-
-	res = hour * 3600 + min * 60 + sec;
-
-	return(res);
+    if (&dest->precision > 999999 || &dest->precision < 0)
+		INTERNAL("Invalid time format");
+	
+	return 0;
 }
 
 /*

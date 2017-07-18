@@ -45,6 +45,16 @@ typedef struct DATE_T {
 	int julian;
 	} date_t;
 
+
+typedef struct TIME_P {
+    int hour;
+	int minute;
+	int second;
+	int precision;
+
+} time_p;
+
+
 date_t *mk_date(void);
 
 int	jtodt(date_t *dest, int i);

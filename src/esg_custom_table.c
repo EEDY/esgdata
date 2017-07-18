@@ -29,6 +29,14 @@ typedef struct
     date_t max;
 } date_comb_t;
 
+
+typedef struct
+{
+    time_p val;
+	time_p min;
+	time_p max;
+} time_comb_t;
+
 /* define a buffer to store generated data */
 union {
     int uInt;
@@ -42,6 +50,7 @@ union {
     date_t uDate;
     date_comb_t uDateComb;
     ds_addr_t uAddr;
+	time_comb_t uTime;
 
     ds_pricing_t uPrice;//?
 
@@ -150,6 +159,29 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 		case CUS_EMAIL:
             
 		case CUS_TIME:
+			
+			if (strlen(col->min) > 0)
+                esg_strtotime(&buffer.uTime.min, col->min);
+            else
+                esg_strtotime(&buffer.uTime.min, "00:00:00.000001");
+
+            if (strlen(col->max) > 0)
+                esg_strtotime(&buffer.uTime.max, col->max);
+            else
+                esg_strtotime(&buffer.uTime.max, "23:59:59.999999");
+
+			int max_time,max_pre,min_time,min_pre;
+			
+			min_time = &buffer.uTime.min.hour * 3600 + &buffer.uTime.min.minute * 60 + &buffer.uTime.max.second;
+			min_pre = &buffer.uTime.max.precision
+
+			
+			max_time = &buffer.uTime.max.hour * 3600 + &buffer.uTime.max.minute * 60 + &buffer.uTime.max.second;
+			max_pre = &buffer.uTime.max.precision
+				
+            genrand_key(&buffer.uKey, DIST_UNIFORM, min_time, max_time, 0, col_num);
+			genrand_key(&buffer.uKey, DIST_UNIFORM, min_pre, max_pre, 0, col_num);
+			
 		case CUS_TIMESTAMP:
 		case CUS_RANDOM:
 
