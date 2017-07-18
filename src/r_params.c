@@ -46,7 +46,7 @@
 #include "tdefs.h"
 #include "release.h"
 
-#define PARAM_MAX_LEN	80
+#define PARAM_MAX_LEN	256
 
 #ifndef TEST
 extern option_t options[];

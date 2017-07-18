@@ -75,7 +75,7 @@
 extern int optind, opterr;
 extern char *optarg;
 /* extern tdef w_tdefs[], s_tdefs[]; */
-char g_szCommandLine[201];
+char g_szCommandLine[512];
 file_ref_t CurrentFile;
 file_ref_t *pCurrentFile;
 
@@ -601,9 +601,20 @@ main (int ac, char **av)
     /* must set a input DDL excel file, old version 97-03 */
     if (!is_set("INPUT") || (table->ddl_excel = get_str("INPUT")) == NULL)
     {
-        fprintf(stderr, "Need to set parameter -INPUT to set specify a DDL excel file.\n");
+        fprintf(stderr, "Need to set parameter -INPUT to specify a DDL excel file.\n");
         exit(-1);
     }
+    if (is_set("GETSHNAME"))
+    {
+        int ret=0;
+        char buf[512] = "";
+        ret = esg_excel_get_sheet_name(table->ddl_excel, buf);
+        fprintf(stdout, "%s", buf);
+        exit(ret);
+    }
+    
+    esg_init_io(table);
+    
     esg_excel_init(table->ddl_excel);
 
     esg_excel_parsefile(table);

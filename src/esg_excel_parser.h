@@ -27,7 +27,7 @@ enum {
 extern int esg_excel_init(char * file_path);
 extern void esg_excel_destroy();
 extern int esg_excel_parsefile(cus_table_t * table);
-
+extern int esg_excel_get_sheet_name(char *excel, char *buf);
 
 
 #ifdef ESG_DEBUG

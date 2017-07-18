@@ -33,6 +33,20 @@ void esg_excel_destroy()
 }
 
 
+int esg_excel_get_sheet_name(char *excel, char *buf)
+{
+    int ret;
+
+    esg_excel_init(excel);
+    
+    ret = excel_format_get_sheet_name(0, buf);
+
+    esg_excel_destroy();
+
+    return ret;
+}
+
+
 int esg_excel_read_bool(int sheet, int col_num, int property_id)
 {
 	int ret = 0;
