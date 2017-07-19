@@ -102,25 +102,22 @@ mk_date(void)
 int 
 esg_strtotime(time_p *dest, char *str)
 {
-	int hour, min, sec, precision;
-	time_p res;
+	int count = 0;
 
-	if (sscanf(str, "%d:%d:%d.%6d", &dest->hour, &dest->minute, &dest->second, &dest->precision) != 4)
-	{
-		if (sscanf(str, "%d:%d:%d", &dest->hour, &dest->minute, &dest->second) != 3)
-		{
-			INTERNAL("Invalid time format");
-		}
-		&dest->precision = 0;
-	}
+	count = sscanf(str, "%d:%d:%d.%6d", &dest->hour, &dest->minute, &dest->second, &dest->precision);
+	if (count == 3)
+		dest->precision = 0;
+	else if (count < 3)
+		INTERNAL("Invalid time format");
 
-	if (&dest->hour > 23 || &dest->hour < 0)
+
+	if (dest->hour > 23 || dest->hour < 0)
 		INTERNAL("Invalid time format");
-	if (&dest->minute > 59 || &dest->minute < 0)
+	if (dest->minute > 59 || dest->minute < 0)
 		INTERNAL("Invalid time format");
-	if (&dest->second > 59 || &dest->second < 0)
+	if (dest->second > 59 || dest->second < 0)
 		INTERNAL("Invalid time format");
-    if (&dest->precision > 999999 || &dest->precision < 0)
+    if (dest->precision > 999999 || dest->precision < 0)
 		INTERNAL("Invalid time format");
 	
 	return 0;

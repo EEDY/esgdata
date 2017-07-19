@@ -32,9 +32,13 @@ typedef struct
 
 typedef struct
 {
+
+    ds_key_t uKey_1;//long long
+    ds_key_t uKey_2;//long long
     time_p val;
 	time_p min;
 	time_p max;
+	int pre_count;
 } time_comb_t;
 
 /* define a buffer to store generated data */
@@ -94,6 +98,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
     int isLastCol = col_num == col_count;
     ds_key_t min;
     ds_key_t max;
+	int max_time, max_pre, min_time, min_pre ;
 
     if (col->nullable && genrand_boolean(NULL, col_num))
     {
@@ -128,11 +133,16 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 		    break;
 
 	    case CUS_CHAR:
+
+			buffer.uStr[0] = '\0';
+			
             gen_text(buffer.uStr, 1, col->length, col_num);
             io->out_varchar(col_num, buffer.uStr, !isLastCol);
             break;
             
 		case CUS_DECIMAL:
+
+			memset(&buffer.uDecComb, 0, sizeof(buffer.uDecComb));
             
             strtodec(&buffer.uDecComb.min, col->min);
             strtodec(&buffer.uDecComb.max, col->max);
@@ -142,6 +152,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             
 		case CUS_DATE:
 
+			memset(&buffer.uDateComb, 0, sizeof(buffer.uDateComb));
+			
             if (strlen(col->min) > 0)
                 esg_strtodate(&buffer.uDateComb.min, col->min);
             else
@@ -156,35 +168,61 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             io->out_date(col_num, &buffer.uDateComb.val, !isLastCol);
             break;
             
-		case CUS_EMAIL:
             
 		case CUS_TIME:
-			
+
+			if (col->precision < 0)
+				col->precision = 0;
+			else if (col->precision >6)
+				col->precision = 6;
+
+			memset(&buffer.uTime, 0, sizeof(buffer.uTime));
+
 			if (strlen(col->min) > 0)
                 esg_strtotime(&buffer.uTime.min, col->min);
-            else
-                esg_strtotime(&buffer.uTime.min, "00:00:00.000001");
+			else
+                esg_strtotime(&buffer.uTime.min, "00:00:00.000000");
 
             if (strlen(col->max) > 0)
                 esg_strtotime(&buffer.uTime.max, col->max);
-            else
+            else if (col->precision > 0)
+            {
+                esg_strtotime(&buffer.uTime.max, "23:59:59.999999");
+                switch(col->precision)
+                {
+                    case 1 : buffer.uTime.max.precision = 9;break;
+					case 2 : buffer.uTime.max.precision = 99;break;
+					case 3 : buffer.uTime.max.precision = 999;break;
+					case 4 : buffer.uTime.max.precision = 9999;break;
+					case 5 : buffer.uTime.max.precision = 99999;break;
+					case 6 : buffer.uTime.max.precision = 999999;break;
+					default : buffer.uTime.max.precision = 0;break;
+
+				}
+
+			}
+			else
                 esg_strtotime(&buffer.uTime.max, "23:59:59.999999");
 
-			int max_time,max_pre,min_time,min_pre;
-			
-			min_time = &buffer.uTime.min.hour * 3600 + &buffer.uTime.min.minute * 60 + &buffer.uTime.max.second;
-			min_pre = &buffer.uTime.max.precision
 
 			
-			max_time = &buffer.uTime.max.hour * 3600 + &buffer.uTime.max.minute * 60 + &buffer.uTime.max.second;
-			max_pre = &buffer.uTime.max.precision
+			min_time = buffer.uTime.min.hour * 3600 + buffer.uTime.min.minute * 60 + buffer.uTime.max.second;
+			min_pre = buffer.uTime.min.precision;
+
+			
+			max_time = buffer.uTime.max.hour * 3600 + buffer.uTime.max.minute * 60 + buffer.uTime.max.second;
+			max_pre = buffer.uTime.max.precision;
 				
-            genrand_key(&buffer.uKey, DIST_UNIFORM, min_time, max_time, 0, col_num);
-			genrand_key(&buffer.uKey, DIST_UNIFORM, min_pre, max_pre, 0, col_num);
+            genrand_key(&buffer.uTime.uKey_1, DIST_UNIFORM, min_time, max_time, 0, col_num);
+			genrand_key(&buffer.uTime.uKey_2, DIST_UNIFORM, min_pre, max_pre, 0, col_num);
+
+			io->out_time(col_num, col->precision, buffer.uTime.uKey_1, buffer.uTime.uKey_2, !isLastCol);
+
+			break;
 			
 		case CUS_TIMESTAMP:
 		case CUS_RANDOM:
-
+        case CUS_EMAIL:
             
 		case CUS_INT_YEAR:
 		case CUS_INT_MONTH:
@@ -217,7 +255,12 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
 	    case CUS_CHAR:
             ret = col->length;
             break;
-            
+        case CUS_TIME:
+			ret = 2;
+			break;
+		case CUS_TIMESTAMP:
+			ret = 3;
+			break;
 		case CUS_DATE:
         case CUS_SEQ:
 		case CUS_INT:

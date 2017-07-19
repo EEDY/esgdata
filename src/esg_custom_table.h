@@ -48,7 +48,7 @@ typedef struct CUS_IO_FUNC
 	void (*out_varchar) (int nColumn, char *val, int sep);
 	void (*out_char) (int nColumn, char val, int sep);
 	void (*out_date) (int nColumn, date_t *val, int sep);
-	void (*out_time) (int nColumn, ds_key_t val, int sep);
+	void (*out_time) (int nColumn, int precision, ds_key_t val_time, ds_key_t val_pre, int sep);
 	void (*out_decimal) (int nColumn, decimal_t * val, int sep);
 	void (*out_key) (int nColumn, ds_key_t val, int sep);
 	void (*out_id) (int nColumn, ds_key_t val, int sep);

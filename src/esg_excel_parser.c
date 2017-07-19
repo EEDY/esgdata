@@ -137,7 +137,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				if (CUS_DECIMAL == col->type)
 				{
 					col->scale = excel_format_get_int(sheet, col_num, COL_TYPE_SCALE);
-					esg_debug_printf("DEBUG: get col type precision %d\n", col->scale);
+					esg_debug_printf("DEBUG: get col type scale %d\n", col->scale);
 				}
 				break;
 

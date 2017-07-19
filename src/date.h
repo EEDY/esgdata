@@ -84,5 +84,7 @@ int getDateWeightFromJulian(int jDay, int nDistribution);
 extern char *weekday_names[];
 
 int esg_strtodate(date_t *dest, char *str);
+int esg_strtotime(time_p *dest, char *str);
+
 
 #endif /* R_DATE_H */
