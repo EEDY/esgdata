@@ -89,6 +89,25 @@ int esg_str_to_col_type(char * str)
 }
 
 
+
+int esg_get_precision_time(char * val)
+{
+    char *str;
+    int count = strlen(val);
+    int pre = 0;
+
+    for (str = val; str != '\0'; str++)
+    {
+        if (*str == '.')
+        {
+            pre = strlen(str) - 1;
+            break;
+        }
+    }
+
+    return pre;
+}
+
 int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 {
 	const char *pstr = NULL;
@@ -158,10 +177,16 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						col->min[CUS_NUM_LEN - 1] = '\0';
 						strncpy(col->min, pstr, sizeof(col->min) - 1);
 						esg_debug_printf("DEBUG: get min str %s\n", col->min);
+                        if (CUS_TIME == col->type)
+                        {
+                            col->precision = esg_get_precision_time(col->min);
+
+                        }
 					}
 					else
 					{
 						col->min[0] = '\0';
+
 					}
 				}
 				break;
@@ -175,6 +200,14 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						col->max[CUS_NUM_LEN - 1] = '\0';
 						strncpy(col->max, pstr, sizeof(col->max) - 1);
 						esg_debug_printf("DEBUG: get max str %s\n", col->max);
+
+                        if (CUS_TIME == col->type)
+                        {
+                            int v;
+                            v = esg_get_precision_time(col->max);
+                            col->precision = col->precision < v ? v:col->precision
+
+                        }
 
 						if (strlen(col->min) > 0)
 						{

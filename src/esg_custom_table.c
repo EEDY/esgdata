@@ -179,30 +179,14 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 			memset(&buffer.uTime, 0, sizeof(buffer.uTime));
 
 			if (strlen(col->min) > 0)
-                esg_strtotime(&buffer.uTime.min, col->min);
+                esg_strtotime(&buffer.uTime.min, col->min, col->precision);
 			else
-                esg_strtotime(&buffer.uTime.min, "00:00:00.000000");
+                esg_strtotime(&buffer.uTime.min, "00:00:00.000000", col->precision);
 
             if (strlen(col->max) > 0)
-                esg_strtotime(&buffer.uTime.max, col->max);
-            else if (col->precision > 0)
-            {
-                esg_strtotime(&buffer.uTime.max, "23:59:59.999999");
-                switch(col->precision)
-                {
-                    case 1 : buffer.uTime.max.precision = 9;break;
-					case 2 : buffer.uTime.max.precision = 99;break;
-					case 3 : buffer.uTime.max.precision = 999;break;
-					case 4 : buffer.uTime.max.precision = 9999;break;
-					case 5 : buffer.uTime.max.precision = 99999;break;
-					case 6 : buffer.uTime.max.precision = 999999;break;
-					default : buffer.uTime.max.precision = 0;break;
-
-				}
-
-			}
-			else
-                esg_strtotime(&buffer.uTime.max, "23:59:59.999999");
+                esg_strtotime(&buffer.uTime.max, col->max, col->precision);
+			else if 
+                esg_strtotime(&buffer.uTime.max, "23:59:59.999999", col->precision);
 
 
 			
