@@ -153,24 +153,31 @@ esg_print_date (int nColumn, date_t *val, int sep)
 }
 
 void
-esg_print_time (int nColumn, ds_key_t val, int sep)
+esg_print_time (int nColumn, int precision, ds_key_t val_time, ds_key_t val_pre, int sep)
 {
 	int nHours, nMinutes, nSeconds;
-
-	nHours = (int)(val / 3600);
-	val -= 3600 * nHours;
-	nMinutes = (int)(val / 60);
-	val -= 60 * nMinutes;
-	nSeconds = (int)(val % 60);
+    char format[64] = "%02d:%02d:%02d.%0xd";
 	
-	if (val != -1)
+	nHours = (int)(val_time/ 3600);
+	val_time -= 3600 * nHours;
+	nMinutes = (int)(val_time / 60);
+	val_time -= 60 * nMinutes;
+	nSeconds = (int)(val_time % 60);
+	
+	if (precision != 0)
 	{
-		fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
+	    format[17] = 48+precision;
+		fprintf(fpOutfile, format, nHours, nMinutes, nSeconds, val_pre);
+	}
+	else 
+	{
+        fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
 	}
 
 	esg_print_separator (sep);
 	   
 	return;
+
 }
 
 void

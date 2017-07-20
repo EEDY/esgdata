@@ -45,6 +45,16 @@ typedef struct DATE_T {
 	int julian;
 	} date_t;
 
+
+typedef struct TIME_P {
+    int hour;
+	int minute;
+	int second;
+	int precision;
+
+} time_p;
+
+
 date_t *mk_date(void);
 
 int	jtodt(date_t *dest, int i);
@@ -74,5 +84,7 @@ int getDateWeightFromJulian(int jDay, int nDistribution);
 extern char *weekday_names[];
 
 int esg_strtodate(date_t *dest, char *str);
+int esg_strtotime(time_p *dest, char *str, int pre);
+
 
 #endif /* R_DATE_H */

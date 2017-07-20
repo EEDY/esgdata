@@ -99,30 +99,47 @@ mk_date(void)
  * Side Effects:
  * TODO: None
  */
-int
-strtotime(char *str)
+int 
+esg_strtotime(time_p *dest, char *str, int pre)
 {
-	int hour, min, sec, res;
+	int count = 0;
+    char tmp[8];
+    int pre_num;
+    
 
-	if (sscanf(str, "%d:%d:%d", &hour, &min, &sec) != 3)
-	{
-		if (sscanf(str, "%d:%d", &hour, &min) != 2)
-		{
-			INTERNAL("Invalid time format");
-		}
-		sec = 0;
-	}
-
-	if (hour > 23 || hour < 0)
+	count = sscanf(str, "%d:%d:%d.%s", &dest->hour, &dest->minute, &dest->second, tmp);//&dest->precision);
+	if (count == 3)
+    {   
+		dest->precision = 0;
+    }
+	else if (count < 3)
+    {   
 		INTERNAL("Invalid time format");
-	if (min > 59 || min < 0)
-		INTERNAL("Invalid time format");
-	if (sec > 59 || sec < 0)
-		INTERNAL("Invalid time format");
+    }    
+    else if (count == 4)
+    {
+        if (strlen(tmp) != pre)
+        {
+            pre_num = strlen(tmp);
+            dest->precision = atoi(tmp) * pow(10,(pre - pre_num));
+        }
+        else
+        {
+            dest->precision = atoi(tmp);
+        }
+    }
 
-	res = hour * 3600 + min * 60 + sec;
 
-	return(res);
+	if (dest->hour > 23 || dest->hour < 0)
+		INTERNAL("Invalid time format");
+	if (dest->minute > 59 || dest->minute < 0)
+		INTERNAL("Invalid time format");
+	if (dest->second > 59 || dest->second < 0)
+		INTERNAL("Invalid time format");
+    if (dest->precision > 999999 || dest->precision < 0)
+		INTERNAL("Invalid time format");
+	
+	return 0;
 }
 
 /*
