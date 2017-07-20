@@ -104,22 +104,30 @@ esg_strtotime(time_p *dest, char *str, int pre)
 {
 	int count = 0;
     char tmp[8];
-    int pre_num, multi;
+    int pre_num;
     
 
 	count = sscanf(str, "%d:%d:%d.%s", &dest->hour, &dest->minute, &dest->second, tmp);//&dest->precision);
 	if (count == 3)
+    {   
 		dest->precision = 0;
+    }
 	else if (count < 3)
+    {   
 		INTERNAL("Invalid time format");
+    }    
     else if (count == 4)
+    {
+        if (strlen(tmp) != pre)
         {
-            if (strlen(tmp) != pre)
-            {
-                pre_num = strlen(tmp);
-                dest->precision = atoi(tmp) * power(10,(pre - pre_num));
-            }
+            pre_num = strlen(tmp);
+            dest->precision = atoi(tmp) * pow(10,(pre - pre_num));
         }
+        else
+        {
+            dest->precision = atoi(tmp);
+        }
+    }
 
 
 	if (dest->hour > 23 || dest->hour < 0)

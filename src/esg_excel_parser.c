@@ -205,7 +205,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
                         {
                             int v;
                             v = esg_get_precision_time(col->max);
-                            col->precision = col->precision < v ? v:col->precision
+                            col->precision = col->precision < v ? v:col->precision;
 
                         }
 

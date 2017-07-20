@@ -185,7 +185,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 
             if (strlen(col->max) > 0)
                 esg_strtotime(&buffer.uTime.max, col->max, col->precision);
-			else if 
+			else 
                 esg_strtotime(&buffer.uTime.max, "23:59:59.999999", col->precision);
 
 
