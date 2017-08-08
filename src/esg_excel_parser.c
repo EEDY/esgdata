@@ -169,7 +169,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MIN:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MIN);
 					if (NULL != pstr)
@@ -177,7 +177,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						col->min[CUS_NUM_LEN - 1] = '\0';
 						strncpy(col->min, pstr, sizeof(col->min) - 1);
 						esg_debug_printf("DEBUG: get min str %s\n", col->min);
-                        if (CUS_TIME == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
                         {
                             col->precision = esg_get_precision_time(col->min);
 
@@ -186,13 +186,12 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 					else
 					{
 						col->min[0] = '\0';
-
 					}
 				}
 				break;
 
 			case COL_TYPE_MAX:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MAX);
 					if (NULL != pstr)
@@ -201,15 +200,14 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						strncpy(col->max, pstr, sizeof(col->max) - 1);
 						esg_debug_printf("DEBUG: get max str %s\n", col->max);
 
-                        if (CUS_TIME == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
                         {
                             int v;
                             v = esg_get_precision_time(col->max);
                             col->precision = col->precision < v ? v:col->precision;
-
                         }
 
-						if (strlen(col->min) > 0)
+						if (strlen(col->min) > 0)//todo: need to improve for time/timestamp 
 						{
 							ds_key_t min_val, max_val;
 

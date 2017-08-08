@@ -180,6 +180,52 @@ esg_print_time (int nColumn, int precision, ds_key_t val_time, ds_key_t val_pre,
 
 }
 
+
+void esg_print_timestamp (int nColumn, date_t *date, int precision, ds_key_t time, ds_key_t time_pre, int sep)
+{
+    int nHours, nMinutes, nSeconds;
+    char format[64] = "%02d:%02d:%02d.%0xd";
+
+    //pirnt date
+    if (NULL != date)
+    {
+        if (fwrite(dttostr(date), 1, 10, fpOutfile) != 10)
+        {
+            fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
+            exit(-1);
+        }
+    }
+
+    //print blank
+    if (fwrite(" ", 1, 1, fpOutfile) != 1)
+    {
+        fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
+        exit(-1);
+    }
+
+    //print time
+	nHours = (int)(time/ 3600);
+	time -= 3600 * nHours;
+	nMinutes = (int)(time / 60);
+	time -= 60 * nMinutes;
+	nSeconds = (int)(time % 60);
+
+	if (precision != 0)
+	{
+	    format[17] = 48+precision;
+		fprintf(fpOutfile, format, nHours, nMinutes, nSeconds, time_pre);
+	}
+	else 
+	{
+        fprintf(fpOutfile, "%02d:%02d:%02d", nHours, nMinutes, nSeconds);
+	}
+
+	esg_print_separator (sep);
+
+	return;
+}
+
+
 void
 esg_print_decimal (int nColumn, decimal_t * val, int sep)
 {
