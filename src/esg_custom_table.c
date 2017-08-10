@@ -3,7 +3,7 @@
 #include "porting.h"
 #include <stdio.h>
 #include <assert.h>
-
+#include <math.h>
 
 #include "genrand.h"
 #include "esg_custom_table.h"
@@ -41,6 +41,19 @@ typedef struct
 	int pre_count;
 } time_comb_t;
 
+
+typedef struct
+{
+
+    ds_key_t uKey_1;//long long
+    ds_key_t uKey_2;//long long
+    ds_key_t uKey_3;//long long
+    interval_t val;
+	interval_t min;
+	interval_t max;
+} interval_comb_t;
+
+
 /* define a buffer to store generated data */
 union {
     int uInt;
@@ -55,7 +68,8 @@ union {
     date_comb_t uDateComb;
     ds_addr_t uAddr;
 	time_comb_t uTime;
-
+    interval_comb_t uInterval;
+    
     ds_pricing_t uPrice;//?
 
 }
@@ -98,7 +112,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
     int isLastCol = col_num == col_count;
     ds_key_t min;
     ds_key_t max;
-	int max_time, max_pre, min_time, min_pre ;
+	ds_key_t max_time, max_pre, min_time, min_pre ;
 
     if (col->nullable && genrand_boolean(NULL, col_num))
     {
@@ -205,20 +219,159 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 			break;
 			
 		case CUS_TIMESTAMP:
-		case CUS_RANDOM:
-        case CUS_EMAIL:
+
             
 		case CUS_INT_YEAR:
 		case CUS_INT_MONTH:
-		case CUS_INT_DAY:
+        case CUS_INT_DAY:
 		case CUS_INT_HOUR:
 		case CUS_INT_MINUTE:
+            
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision >18)
+				col->precision = 18;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+
+            max = pow(10, buffer.uInterval.val.l_precision) - 1;
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
+
+            io->out_key(col_num, buffer.uInterval.uKey_1, !isLastCol);
+            break;
+
 		case CUS_INT_SECOND:
+
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+
+            if (col->scale <= 0 || col->scale > 6)
+                col->scale = 6;
+
+            buffer.uInterval.val.f_precision = col->scale;
+            buffer.uInterval.max.l_precision = pow(10, buffer.uInterval.val.l_precision) - 1;
+            buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
+
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+
+            io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
+            break;
+            
 		case CUS_INT_YM:
-		case CUS_INT_MD:
+
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+            max = pow(10, buffer.uInterval.val.l_precision) - 1;
+            
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 11, 0, col_num);
+
+		    io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
+            break;
+            
 		case CUS_INT_DH:
+
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+            max = pow(10, buffer.uInterval.val.l_precision) - 1;
+            
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 23, 0, col_num);
+
+		    io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
+            break;
+            
 		case CUS_INT_HM:
+
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+            max = pow(10, buffer.uInterval.val.l_precision) - 1;
+
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 59, 0, col_num);
+
+            io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
+            break;
+            
 		case CUS_INT_MS:
+            
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            if (col->scale <= 0 || col->scale >6)
+                col->scale = 6;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+            buffer.uInterval.val.f_precision = col->scale;
+            
+            buffer.uInterval.max.l_precision = 60 * (pow(10, buffer.uInterval.val.l_precision) - 1) + 59;
+            buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
+
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+ 
+            io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
+            break;
+            
+        case CUS_INT_DS:
+            
+            if (col->precision <= 0)
+				col->precision = 2;
+			else if (col->precision > 18)
+				col->precision = 18;
+
+            if (col->scale <= 0 || col->scale >6)
+                col->scale = 6;
+
+            memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
+
+            buffer.uInterval.val.l_precision = col->precision;
+            buffer.uInterval.val.f_precision = col->scale;
+            
+            buffer.uInterval.max.l_precision = pow(10, buffer.uInterval.val.l_precision) - 1;
+            buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
+            
+
+            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 86399, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_3, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+
+            io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, buffer.uInterval.uKey_3, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
+            break;
+            
+        case CUS_RANDOM:
+        case CUS_EMAIL:
         default:
             assert(0);
             break;
@@ -488,6 +641,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_boolean = esg_hdfs_boolean;
         tab->io.out_string = esg_hdfs_string;
         tab->io.out_null = esg_hdfs_null;
+        tab->io.out_interval = esg_print_interval;
     }
     else
     {
@@ -506,6 +660,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_boolean = esg_print_boolean;
         tab->io.out_string = esg_print_string;
         tab->io.out_null = esg_print_null;
+        tab->io.out_interval = esg_print_interval;
     }
 
 }

@@ -181,6 +181,102 @@ esg_print_time (int nColumn, int precision, ds_key_t val_time, ds_key_t val_pre,
 }
 
 void
+esg_print_interval (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, ds_key_t value_3, int l_precision, int f_precision, int sep)
+{
+    ds_key_t nHours, nMinutes, nSeconds;
+    char format[64] = "%lld.%06lld";
+
+    switch(Type)
+    {
+        case CUS_INT_SECOND:
+        {    if (f_precision != 0)
+            {
+                format[7] = 48 + f_precision;
+                fprintf(fpOutfile, format , value_1, value_2);
+            }
+            else
+            {
+                fprintf(fpOutfile, "%lld", value_1);
+            }
+            break;
+        }    
+        
+        case CUS_INT_YM:
+        {
+
+            fprintf(fpOutfile, "%lld-%02lld", value_1, value_2);
+            break;
+        }    
+        
+		case CUS_INT_HM:
+		case CUS_INT_DH:
+        {
+            fprintf(fpOutfile, "%lld:%02lld", value_1, value_2);
+            break;
+        }    
+		case CUS_INT_MS:
+        {
+            strcpy(format, "%lld:%02lld.%06lld");
+            nMinutes = value_1 / 60;
+            nSeconds = value_1 % 60;    
+
+            if (nSeconds < 60 && nSeconds >= 0)
+            {
+                if (f_precision != 0)
+                {
+                    format[14] = 48 + f_precision;
+                    fprintf(fpOutfile, format , nMinutes, nSeconds, value_2);
+                }
+                else
+                {
+                    fprintf(fpOutfile, "%lld:%02lld" , nMinutes, nSeconds);
+                }
+            }
+            else
+            {
+                fprintf(stderr,"ERROR:seconds cannot overhead 60s!");
+                exit(-1);
+            }
+            break;
+        }    
+        case CUS_INT_DS:
+        {
+            strcpy(format, "%lld:%02lld:%02lld:%02lld.%06lld");
+            nHours = value_2/ 3600;
+        	value_2 -= 3600 * nHours;
+        	nMinutes = value_2 / 60;
+        	value_2 -= 60 * nMinutes;
+        	nSeconds = value_2 % 60;
+
+            if (nHours >= 24 || nHours < 0 || nMinutes >= 60 || nMinutes <0 || nSeconds >= 60 || nSeconds <0)
+            {
+                fprintf(stderr,"ERROR: The time format %02lld:%02lld:%02lld is not valid", nHours, nMinutes, nSeconds);
+                exit(-1);
+            }
+            
+            if (f_precision != 0)
+        	{
+        	    format[28] = 48 + f_precision;
+        		fprintf(fpOutfile, format, value_1, nHours, nMinutes, nSeconds, value_3);
+        	}
+        	else 
+        	{
+                fprintf(fpOutfile, "%lld:%02lld:%02lld:%02lld", value_1, nHours, nMinutes, nSeconds);
+        	}
+            break;
+        }
+        default:
+            exit(-1);
+            break;
+            
+            }
+
+    esg_print_separator (sep);
+	   
+	return 0;
+}
+
+void
 esg_print_decimal (int nColumn, decimal_t * val, int sep)
 {
 	int i;

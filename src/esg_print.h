@@ -18,6 +18,8 @@ int esg_print_end (cus_table_t *table);
 int esg_openDeleteFile(int bOpen);
 void esg_print_string (char *szMessage, ds_key_t val);
 void esg_print_null(int nColumn, int sep);
+void esg_print_interval (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, ds_key_t value_3, int l_precision, int f_precision, int sep);
+
 
 #endif
 

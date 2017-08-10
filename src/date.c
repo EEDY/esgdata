@@ -87,7 +87,27 @@ mk_date(void)
 	return(res);
 }
 /*
- * Routine: strtotime(char *str)
+ * Routine: esg_strtointerval(interval_t *dest)
+ * Purpose: convert a string from the interval to the buffer 
+ * Algorithm:
+ * Data Structures:
+ * Params:	
+ * Returns: int
+ * Called By: 
+ * Calls: 
+ * Assumptions:
+ * Side Effects:
+ * TODO: need support for min/max interval types
+
+*/
+int 
+esg_strtointerval(interval_t *dest)
+{
+
+    return 0;
+}
+/*
+ * Routine: esg_strtotime(time_p *dest, char *str, int pre)
  * Purpose: convert a string from the time to the number of seconds since midnight 
  * Algorithm:
  * Data Structures:

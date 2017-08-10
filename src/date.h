@@ -55,6 +55,18 @@ typedef struct TIME_P {
 } time_p;
 
 
+typedef struct INTERVAL_T {
+    ds_key_t year;
+    ds_key_t month;
+    ds_key_t day;
+    ds_key_t hour;
+    ds_key_t minute;
+    ds_key_t second;
+    ds_key_t l_precision;
+    ds_key_t f_precision;
+
+} interval_t;
+
 date_t *mk_date(void);
 
 int	jtodt(date_t *dest, int i);
