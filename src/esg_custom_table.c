@@ -53,6 +53,12 @@ typedef struct
 	interval_t max;
 } interval_comb_t;
 
+typedef struct 
+{
+    date_comb_t uDateComb;
+	time_comb_t uTime;
+} timestamp_comb_t;
+
 
 /* define a buffer to store generated data */
 union {
@@ -69,7 +75,7 @@ union {
     ds_addr_t uAddr;
 	time_comb_t uTime;
     interval_comb_t uInterval;
-    
+    timestamp_comb_t uTimestamp;
     ds_pricing_t uPrice;//?
 
 }
@@ -103,6 +109,59 @@ int esg_init_col(cus_col_t *col, char *name, int type, int len, int nullable, in
     
     col->seq = malloc(sizeof (*(col->seq)));
     *(col->seq) = seq;
+}
+
+
+void esg_gen_data_date(cus_col_t *col, int col_num, date_comb_t *date_comb)
+{
+    memset(date_comb, 0, sizeof(*date_comb));
+
+    if (strlen(col->min) > 0)
+        esg_strtodate(&date_comb->min, col->min);
+    else
+        esg_strtodate(&date_comb->min, "1999-1-1");
+
+    if (strlen(col->max) > 0)
+        esg_strtodate(&date_comb->max, col->max);
+    else
+        esg_strtodate(&date_comb->max, "2017-1-1");
+
+    genrand_date(&date_comb->val, DIST_UNIFORM, &date_comb->min, &date_comb->max, NULL, col_num);
+
+    return ;
+}
+
+void esg_gen_data_time(cus_col_t *col, int col_num, int range_enable, time_comb_t *time_comb)
+{
+    int max_time, max_pre, min_time, min_pre ;
+
+    if (col->precision < 0)
+        col->precision = 0;
+    else if (col->precision >6)
+        col->precision = 6;
+
+    memset(time_comb, 0, sizeof(*time_comb));
+
+    if (range_enable && strlen(col->min) > 0)
+        esg_strtotime(&time_comb->min, col->min, col->precision);
+    else
+        esg_strtotime(&time_comb->min, "00:00:00.000000", col->precision);
+
+    if (range_enable && strlen(col->max) > 0)
+        esg_strtotime(&time_comb->max, col->max, col->precision);
+    else 
+        esg_strtotime(&time_comb->max, "23:59:59.999999", col->precision);
+
+    min_time = time_comb->min.hour * 3600 + time_comb->min.minute * 60 + time_comb->max.second;
+    min_pre = time_comb->min.precision;
+
+    max_time = time_comb->max.hour * 3600 + time_comb->max.minute * 60 + time_comb->max.second;
+    max_pre = time_comb->max.precision;
+				
+    genrand_key(&time_comb->uKey_1, DIST_UNIFORM, min_time, max_time, 0, col_num);
+    genrand_key(&time_comb->uKey_2, DIST_UNIFORM, min_pre, max_pre, 0, col_num);
+
+    return ;
 }
 
 
@@ -166,60 +225,24 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             
 		case CUS_DATE:
 
-			memset(&buffer.uDateComb, 0, sizeof(buffer.uDateComb));
-			
-            if (strlen(col->min) > 0)
-                esg_strtodate(&buffer.uDateComb.min, col->min);
-            else
-                esg_strtodate(&buffer.uDateComb.min, "1999-1-1");
-
-            if (strlen(col->max) > 0)
-                esg_strtodate(&buffer.uDateComb.max, col->max);
-            else
-                esg_strtodate(&buffer.uDateComb.max, "2017-1-1");
-            
-            genrand_date(&buffer.uDateComb.val, DIST_UNIFORM, &buffer.uDateComb.min, &buffer.uDateComb.max, NULL, col_num);
+            esg_gen_data_date(col, col_num, &buffer.uDateComb);
             io->out_date(col_num, &buffer.uDateComb.val, !isLastCol);
             break;
             
             
 		case CUS_TIME:
 
-			if (col->precision < 0)
-				col->precision = 0;
-			else if (col->precision >6)
-				col->precision = 6;
-
-			memset(&buffer.uTime, 0, sizeof(buffer.uTime));
-
-			if (strlen(col->min) > 0)
-                esg_strtotime(&buffer.uTime.min, col->min, col->precision);
-			else
-                esg_strtotime(&buffer.uTime.min, "00:00:00.000000", col->precision);
-
-            if (strlen(col->max) > 0)
-                esg_strtotime(&buffer.uTime.max, col->max, col->precision);
-			else 
-                esg_strtotime(&buffer.uTime.max, "23:59:59.999999", col->precision);
-
-
-			
-			min_time = buffer.uTime.min.hour * 3600 + buffer.uTime.min.minute * 60 + buffer.uTime.max.second;
-			min_pre = buffer.uTime.min.precision;
-
-			
-			max_time = buffer.uTime.max.hour * 3600 + buffer.uTime.max.minute * 60 + buffer.uTime.max.second;
-			max_pre = buffer.uTime.max.precision;
-				
-            genrand_key(&buffer.uTime.uKey_1, DIST_UNIFORM, min_time, max_time, 0, col_num);
-			genrand_key(&buffer.uTime.uKey_2, DIST_UNIFORM, min_pre, max_pre, 0, col_num);
-
+            esg_gen_data_time(col, col_num, 1, &buffer.uTime); //need to consider time range
 			io->out_time(col_num, col->precision, buffer.uTime.uKey_1, buffer.uTime.uKey_2, !isLastCol);
 
 			break;
 			
 		case CUS_TIMESTAMP:
 
+            esg_gen_data_date(col, col_num, &buffer.uTimestamp.uDateComb);
+            esg_gen_data_time(col, col_num, 0, &buffer.uTimestamp.uTime); //need to consider time range
+            io->out_timestamp(col_num, &buffer.uTimestamp.uDateComb.val, col->precision, &buffer.uTimestamp.uTime.uKey_1, &buffer.uTimestamp.uTime.uKey_2, !isLastCol);
+            break;
             
 		case CUS_INT_YEAR:
 		case CUS_INT_MONTH:
@@ -635,6 +658,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_char = esg_hdfs_char;
         tab->io.out_date = esg_hdfs_date;
         tab->io.out_time = esg_hdfs_time;
+        tab->io.out_timestamp = esg_hdfs_timestamp;
         tab->io.out_decimal = esg_hdfs_decimal;
         tab->io.out_key = esg_hdfs_key;
         tab->io.out_id = esg_hdfs_id;
@@ -654,6 +678,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_char = esg_print_char;
         tab->io.out_date = esg_print_date;
         tab->io.out_time = esg_print_time;
+        tab->io.out_timestamp = esg_print_timestamp;
         tab->io.out_decimal = esg_print_decimal;
         tab->io.out_key = esg_print_key;
         tab->io.out_id = esg_print_id;

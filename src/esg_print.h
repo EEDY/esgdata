@@ -9,6 +9,7 @@ void esg_print_varchar (int nColumn, char *val, int sep);
 void esg_print_char (int nColumn, char val, int sep);
 void esg_print_date (int nColumn, date_t *val, int sep);
 void esg_print_time (int nColumn, ds_key_t val, int sep);
+void esg_print_timestamp (int nColumn, date_t *date, int precision, ds_key_t time, ds_key_t time_pre, int sep);
 void esg_print_decimal (int nColumn, decimal_t * val, int sep);
 void esg_print_key (int nColumn, ds_key_t val, int sep);
 void esg_print_id (int nColumn, ds_key_t val, int sep);
