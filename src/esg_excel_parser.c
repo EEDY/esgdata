@@ -64,8 +64,12 @@ int esg_excel_read_bool(int sheet, int col_num, int property_id)
 
 int esg_str_to_col_type(char * str)
 {
-	static char *type_name[] = {"int",   "varchar", "date",    "numeric",    "time",   "timestamp",  NULL};//todo
-	static int cus_type[] =    {CUS_INT, CUS_CHAR,  CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, -1};
+	static char *type_name[] = {"int",   "varchar", "date",    "numeric",    "time",   "timestamp", \
+                                "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
+                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", NULL};//todo
+	static int cus_type[] =    {CUS_INT, CUS_CHAR,  CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
+                                CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
+                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, -1};
 
 	char * tmp;
 	int idx;
@@ -145,7 +149,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_PRECISION:
-				if (CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
+				if (col->type != CUS_INT || col->type != CUS_CHAR || col->type != CUS_DATE || col->type != CUS_SEQ || col->type != CUS_UNKNOWN)
 				{
 					col->precision = excel_format_get_int(sheet, col_num, COL_TYPE_PRECISION);
 					esg_debug_printf("DEBUG: get col type precision %d\n", col->precision);
@@ -153,7 +157,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_SCALE:
-				if (CUS_DECIMAL == col->type)
+				if (CUS_DECIMAL == col->type || CUS_INT_SECOND == col->type || CUS_INT_MS == col->type || CUS_INT_DS == col->type)
 				{
 					col->scale = excel_format_get_int(sheet, col_num, COL_TYPE_SCALE);
 					esg_debug_printf("DEBUG: get col type scale %d\n", col->scale);

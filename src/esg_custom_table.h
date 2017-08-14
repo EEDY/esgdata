@@ -28,10 +28,11 @@ enum cus_types
 	CUS_INT_MINUTE,
 	CUS_INT_SECOND,
 	CUS_INT_YM, //INTERVAL TYPE FOR YEAR TO MONTH
-	CUS_INT_MD, //INTERVAL TYPE FOR MONTH TO DAY
+	CUS_INT_MD, //INTERVAL TYPE FOR MONTH TO DAY, NOT VALID NOW
 	CUS_INT_DH, //INTERVAL TYPE FOR DAY TO HOUR
 	CUS_INT_HM, //INTERVAL TYPE FOR HOUR TO MINUTE
 	CUS_INT_MS, //INTERVAL TYPE FOR MINUTE TO SECOND
+	CUS_INT_DS, //INTERVAL TYPE FOR DAY TO SECOND
 	
 	CUS_UNKNOWN
 };
@@ -55,6 +56,7 @@ typedef struct CUS_IO_FUNC
 	void (*out_boolean) (int nColumn, int val, int sep);
 	void (*out_string) (char *szMessage, ds_key_t val);
 	void (*out_null)(int nColumn, int sep);
+    void (*out_interval) (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, ds_key_t value_3, int l_precision, int f_precision, int sep);
 
 } cus_io_func_t;
 

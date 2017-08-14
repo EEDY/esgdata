@@ -76,7 +76,7 @@ void NthElement (HUGE_TYPE N, int nStream);
 long
 next_random (int stream)
 {
-   long s = Streams[stream].nSeed,
+   ds_key_t s = Streams[stream].nSeed,
      div_res,
      mod_res;
 
@@ -218,7 +218,7 @@ ds_key_t
 genrand_key (ds_key_t * dest, int dist, ds_key_t min, ds_key_t max,
              ds_key_t mean, int stream)
 {
-   int res = 0,
+   ds_key_t res = 0,
      i;
    double fres = 0;
 
@@ -226,8 +226,8 @@ genrand_key (ds_key_t * dest, int dist, ds_key_t min, ds_key_t max,
      {
      case DIST_UNIFORM:
         res = next_random (stream);
-        res %= (int) (max - min + 1);
-        res += (int) min;
+        res %= max - min + 1;
+        res += min;
         break;
      case DIST_EXPONENTIAL:
         for (i = 0; i < 12; i++)
