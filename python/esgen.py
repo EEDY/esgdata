@@ -535,6 +535,7 @@ def main():
         gen_data(ESGEN_HOME + os.path.basename(options.excel), data_dir_list, sheet_name, nodes, options.rcount, options.parallel)
 
     if options.put is not None:
+        sheet_name = get_first_sheet_name(options.excel)
         put_data_to_hdfs(nodes, data_dir_list, options.put, sheet_name)
 
     if options.clean:

@@ -64,12 +64,12 @@ int esg_excel_read_bool(int sheet, int col_num, int property_id)
 
 int esg_str_to_col_type(char * str)
 {
-	static char *type_name[] = {"int",   "varchar", "date",    "numeric",    "time",   "timestamp", \
+	static char *type_name[] = {"int",   "varchar", "date",    "decimal",    "time",   "timestamp", \
                                 "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
-                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", NULL};//todo
+                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", NULL};//todo
 	static int cus_type[] =    {CUS_INT, CUS_CHAR,  CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
                                 CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
-                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, -1};
+                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, -1};
 
 	char * tmp;
 	int idx;
@@ -173,7 +173,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MIN:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MIN);
 					if (NULL != pstr)
@@ -195,7 +195,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MAX:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MAX);
 					if (NULL != pstr)
