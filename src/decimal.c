@@ -187,18 +187,18 @@ strtodec(decimal_t *dest, char *s)
 	dest->flags = 0;
 	if ((d_pt = strchr(valbuf, '.')) == NULL)
 		{
-		dest->scale = strlen(valbuf);
+		dest->precision = strlen(valbuf);
 		dest->number = atoi(valbuf);
-		dest->precision = 0;
+		dest->scale = 0;
 		}
 	else
 		{
 		*d_pt = '\0';
 		d_pt += 1;
-		dest->scale = strlen(valbuf);
+		dest->precision = strlen(valbuf);
 		dest->number = atoi(valbuf);
-		dest->precision = strlen(d_pt);
-		for (i=0; i < dest->precision; i++)
+		dest->scale = strlen(d_pt);
+		for (i=0; i < dest->scale; i++)
 			dest->number *=10;
 		dest->number += atoi(d_pt);
 		}

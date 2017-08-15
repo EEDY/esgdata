@@ -332,10 +332,10 @@ esg_print_decimal (int nColumn, decimal_t * val, int sep)
     {
 	    dTemp = val->number;
 
-	    for (i=0; i < val->precision; i++)
+	    for (i=0; i < val->scale; i++)
 	    	dTemp /= 10.0;
 
-	    if (fprintf(fpOutfile, "%.*f", val->precision, dTemp) < 0)
+	    if (fprintf(fpOutfile, "%.*f", val->scale, dTemp) < 0)
 	    {
 	    	fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 	    	exit(-1);
