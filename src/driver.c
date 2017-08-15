@@ -576,7 +576,7 @@ main_bak (int ac, char **av)
 
 
 
-/* modified for esgen */
+/* modified for esgdata */
 int
 main (int ac, char **av)
 {
