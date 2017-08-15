@@ -97,6 +97,7 @@ int di_compare(const void *op1, const void *op2);
 #define DIST_RETURNS		5
 #define DIST_CHAR			0x0004
 #define DIST_INT            0x0008
+#define DIST_LONG           0x0009
 #define DIST_NAMES_SET		0xff00
 
 /* DistNameIndex needs to know what sort of name we are trying to match */

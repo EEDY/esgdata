@@ -181,7 +181,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						col->min[CUS_NUM_LEN - 1] = '\0';
 						strncpy(col->min, pstr, sizeof(col->min) - 1);
 						esg_debug_printf("DEBUG: get min str %s\n", col->min);
-                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_DECIMAL == col->type)
                         {
                             col->precision = esg_get_precision_time(col->min);
 
@@ -204,7 +204,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						strncpy(col->max, pstr, sizeof(col->max) - 1);
 						esg_debug_printf("DEBUG: get max str %s\n", col->max);
 
-                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_DECIMAL == col->type)
                         {
                             int v;
                             v = esg_get_precision_time(col->max);

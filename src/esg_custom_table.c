@@ -152,7 +152,7 @@ void esg_gen_data_time(cus_col_t *col, int col_num, int range_enable, time_comb_
     else 
         esg_strtotime(&time_comb->max, "23:59:59.999999", col->precision);
 
-    min_time = time_comb->min.hour * 3600 + time_comb->min.minute * 60 + time_comb->max.second;
+    min_time = time_comb->min.hour * 3600 + time_comb->min.minute * 60 + time_comb->min.second;
     min_pre = time_comb->min.precision;
 
     max_time = time_comb->max.hour * 3600 + time_comb->max.minute * 60 + time_comb->max.second;
@@ -192,12 +192,12 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             if (strlen(col->min) > 0)
                 min = atoll(col->min);
             else
-                min = 0xffffffff;
+                min = 0;
 
             if (strlen(col->max) > 0)
                 max = atoll(col->max);
             else
-                max = 0x7fffffff;
+                max = 2147438647;
             
             buffer.uKey = 0;
 		    //genrand_integer(&buffer.uInt, DIST_UNIFORM, col->min, col->max, 0, col_idx);
@@ -214,13 +214,54 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
             
 		case CUS_DECIMAL:
+        {   int isset_min = 0;
+            int isset_max = 0;
+            int tmp_pre = 0;
+            int tmp_scale = 0;
+            
 
 			memset(&buffer.uDecComb, 0, sizeof(buffer.uDecComb));
+            //get min, max if set
+            if (strlen(col->min) > 0)
+            {
+                isset_min = 1;
+                strtodec(&buffer.uDecComb.min, col->min);
+            }
+
+            if (strlen(col->max) > 0)
+            {
+                isset_max = 1;
+                strtodec(&buffer.uDecComb.max, col->max);
+            }
+
+            //get precision and scale
+            if (0 == isset_min && 0 == isset_max)
+            {
+                if (0 == col->precision)
+                    fprintf (stderr, "Type Decimal has no precision set, column %s.\n", col_num);
+                tmp_pre = col->precision;
+                tmp_scale = col->scale;
+            }
+            else
+            {
+                tmp_pre = buffer.uDecComb.min.precision > buffer.uDecComb.max.precision ? buffer.uDecComb.min.precision : buffer.uDecComb.max.precision;
+                tmp_scale = buffer.uDecComb.min.scale > buffer.uDecComb.max.scale ? buffer.uDecComb.min.scale : buffer.uDecComb.max.scale;
+            }
+            buffer.uDecComb.val.precision = tmp_pre;
+            buffer.uDecComb.val.scale = tmp_scale;
+                
+
+            //get max value if max is not set
+            if (0 == isset_max)
+            {
+                max = (pow(10,(col->precision - col->scale)) - 1) * pow(10, col->scale);
+                buffer.uDecComb.max.number = max + pow(10, col->scale) - 1;
+            }
+
             
-            strtodec(&buffer.uDecComb.min, col->min);
-            strtodec(&buffer.uDecComb.max, col->max);
-            genrand_decimal(&buffer.uDecComb.val, DIST_UNIFORM, &buffer.uDecComb.min, &buffer.uDecComb.max, NULL, col_num);
+            genrand_decimal(&buffer.uDecComb.val, DIST_LONG, &buffer.uDecComb.min, &buffer.uDecComb.max, NULL, col_num);
             io->out_decimal(col_num, &buffer.uDecComb.val, !isLastCol);
+        }
             break;
             
 		case CUS_DATE:
@@ -241,7 +282,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 
             esg_gen_data_date(col, col_num, &buffer.uTimestamp.uDateComb);
             esg_gen_data_time(col, col_num, 0, &buffer.uTimestamp.uTime); //need to consider time range
-            io->out_timestamp(col_num, &buffer.uTimestamp.uDateComb.val, col->precision, &buffer.uTimestamp.uTime.uKey_1, &buffer.uTimestamp.uTime.uKey_2, !isLastCol);
+            io->out_timestamp(col_num, &buffer.uTimestamp.uDateComb.val, col->precision, buffer.uTimestamp.uTime.uKey_1, buffer.uTimestamp.uTime.uKey_2, !isLastCol);
             break;
             
 		case CUS_INT_YEAR:
@@ -260,7 +301,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.val.l_precision = col->precision;
 
             max = pow(10, buffer.uInterval.val.l_precision) - 1;
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, max, 0, col_num);
 
             io->out_key(col_num, buffer.uInterval.uKey_1, !isLastCol);
             break;
@@ -283,8 +324,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.max.l_precision = pow(10, buffer.uInterval.val.l_precision) - 1;
             buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
 
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, buffer.uInterval.max.f_precision, 0, col_num);
 
             io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
             break;
@@ -301,8 +342,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.val.l_precision = col->precision;
             max = pow(10, buffer.uInterval.val.l_precision) - 1;
             
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 11, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, 11, 0, col_num);
 
 		    io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
             break;
@@ -319,8 +360,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.val.l_precision = col->precision;
             max = pow(10, buffer.uInterval.val.l_precision) - 1;
             
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 23, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, 23, 0, col_num);
 
 		    io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
             break;
@@ -337,8 +378,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.val.l_precision = col->precision;
             max = pow(10, buffer.uInterval.val.l_precision) - 1;
 
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, max, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 59, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, max, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, 59, 0, col_num);
 
             io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, 0, !isLastCol);
             break;
@@ -361,8 +402,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.max.l_precision = 60 * (pow(10, buffer.uInterval.val.l_precision) - 1) + 59;
             buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
 
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, buffer.uInterval.max.f_precision, 0, col_num);
  
             io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, 0, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
             break;
@@ -386,9 +427,9 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
             
 
-            genrand_key(&buffer.uInterval.uKey_1, DIST_UNIFORM, 0, buffer.uInterval.max.l_precision, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_2, DIST_UNIFORM, 0, 86399, 0, col_num);
-            genrand_key(&buffer.uInterval.uKey_3, DIST_UNIFORM, 0, buffer.uInterval.max.f_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_1, DIST_LONG, 0, buffer.uInterval.max.l_precision, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_2, DIST_LONG, 0, 86399, 0, col_num);
+            genrand_key(&buffer.uInterval.uKey_3, DIST_LONG, 0, buffer.uInterval.max.f_precision, 0, col_num);
 
             io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, buffer.uInterval.uKey_3, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
             break;

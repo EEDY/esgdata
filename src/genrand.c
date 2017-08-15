@@ -218,8 +218,8 @@ ds_key_t
 genrand_key (ds_key_t * dest, int dist, ds_key_t min, ds_key_t max,
              ds_key_t mean, int stream)
 {
-   ds_key_t res = 0,
-     i;
+   ds_key_t res = 0, res_l = 0;
+   int i;
    double fres = 0;
 
    switch (dist)
@@ -233,6 +233,13 @@ genrand_key (ds_key_t * dest, int dist, ds_key_t min, ds_key_t max,
         for (i = 0; i < 12; i++)
            fres += (double) (next_random (stream) / MAXINT) - 0.5;
         res = (int) min + (int) ((max - min + 1) * fres);
+        break;
+     case DIST_LONG: 
+        res = next_random (stream) << 32;
+        res_l = next_random (stream);
+        res = res + res_l;
+        res %= max - min + 1;
+        res += min;
         break;
      default:
         INTERNAL ("Undefined distribution");
@@ -267,15 +274,9 @@ genrand_decimal (decimal_t * dest, int dist, decimal_t * min, decimal_t * max,
                  decimal_t * mean, int stream)
 {
    int i;
-   decimal_t res;
+   decimal_t res, res_l;
    double fres = 0.0;
-
-   if (min->precision < max->precision)
-      dest->precision = min->precision;
-   else
-      dest->precision = max->precision;
-
-
+   
    switch (dist)
      {
      case DIST_UNIFORM:
@@ -294,19 +295,19 @@ genrand_decimal (decimal_t * dest, int dist, decimal_t * min, decimal_t * max,
         res.number =
            mean->number + (int) ((max->number - min->number + 1) * fres);
         break;
+     case DIST_LONG: 
+        res.number = next_random (stream) << 32;
+        res_l.number = next_random (stream);
+        res.number = res.number + res_l.number;
+        res.number %= max->number - min->number + 1;
+        res.number += min->number;
+        break;
      default:
         INTERNAL ("Undefined distribution");
         break;
      }
 
    dest->number = res.number;
-   i = 0;
-   while (res.number > 10)
-     {
-        res.number /= 10;
-        i += 1;
-     }
-   dest->scale = i;
 
    return (0);
 }
