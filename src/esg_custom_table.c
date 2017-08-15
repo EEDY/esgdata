@@ -190,6 +190,34 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 		case CUS_INT:
 
             if (strlen(col->min) > 0)
+            {
+                min = atoll(col->min);
+            }
+            else
+                min = 0;
+
+            if (strlen(col->max) > 0)
+            {
+                max = atoll(col->max);
+                if (max > MAXINT)
+                {
+                    fprintf (stderr, "WARNING: max value of INT type exceeds MAXINT, column %s.\n", col_num);
+                }
+            }
+            else
+                max = 2147438647;
+
+            buffer.uKey = 0;
+		    //genrand_integer(&buffer.uInt, DIST_UNIFORM, col->min, col->max, 0, col_idx);
+            genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
+            io->out_key(col_num, buffer.uKey, !isLastCol);
+		    break;
+
+        case CUS_BIG_INT:
+
+            buffer.uKey = 0;
+
+            if (strlen(col->min) > 0)
                 min = atoll(col->min);
             else
                 min = 0;
@@ -197,11 +225,9 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             if (strlen(col->max) > 0)
                 max = atoll(col->max);
             else
-                max = 2147438647;
+                max = 9223372036854775807;
             
-            buffer.uKey = 0;
-		    //genrand_integer(&buffer.uInt, DIST_UNIFORM, col->min, col->max, 0, col_idx);
-            genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
+            genrand_key(&buffer.uKey, DIST_LONG, min, max, 0, col_num);
             io->out_key(col_num, buffer.uKey, !isLastCol);
 		    break;
 
@@ -462,10 +488,31 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
 		case CUS_TIMESTAMP:
 			ret = 3;
 			break;
+        case CUS_BIG_INT:
+            ret = 2;
+            break;
+        //using genrand_key(DIST_LONG)
+		case CUS_DECIMAL:
+        case CUS_INT_YEAR:
+		case CUS_INT_MONTH:
+        case CUS_INT_DAY:
+		case CUS_INT_HOUR:
+		case CUS_INT_MINUTE:
+            ret = 2;
+            break;
+        case CUS_INT_SECOND:
+        case CUS_INT_YM:
+        case CUS_INT_DH:
+        case CUS_INT_HM:
+        case CUS_INT_MS:
+            ret = 4;
+            break;
+        case CUS_INT_DS:
+            ret = 6;
+            break;
 		case CUS_DATE:
         case CUS_SEQ:
 		case CUS_INT:
-		case CUS_DECIMAL:
         default:
             ret = 1;
             break;

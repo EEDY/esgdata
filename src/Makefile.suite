@@ -107,7 +107,7 @@ YFLAGS		= $($(OS)_YFLAGS)
 ###############
 TREE_ROOT=/tmp/tree
 #
-PROG1 = esgen$(EXE)
+PROG1 = esgdata$(EXE)
 PROG2 = dsqgen$(EXE)
 PROG3 = distcomp$(EXE)
 PROG4 = mkheader$(EXE)

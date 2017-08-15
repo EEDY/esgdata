@@ -22,7 +22,7 @@ from common import *
 from common.threadpool import *
 
 
-ESGEN_HOME = os.environ['HOME'] + "/esgen-kit/"
+ESGDATA_HOME = os.environ['HOME'] + "/esgdata-kit/"
 
 
 def get_cmd(cmd):
@@ -100,12 +100,12 @@ def cluster_scp(src_path, nodes, target_path):
     run_linux_cmd(cmd)
 
 
-def push_esgen_kit(nodes):
+def push_esgdata_kit(nodes):
   """ Push tpcds_kit to all nodes """
-  logger.info("push esgen-kit to cluster")
-  esgen_kit = " esgen tpcds.idx " + options.excel + " "
-  cluster_scp(esgen_kit, nodes, ESGEN_HOME)
-  cluster_scp("convert_to_utf8.sh", nodes, ESGEN_HOME)
+  logger.info("push esgdata-kit to cluster")
+  esgdata_kit = " esgdata tpcds.idx " + options.excel + " "
+  cluster_scp(esgdata_kit, nodes, ESGDATA_HOME)
+  cluster_scp("convert_to_utf8.sh", nodes, ESGDATA_HOME)
 
 
 def hdfs_mkdir(dim_tables, fact_tables):
@@ -179,13 +179,13 @@ def run_linux_cmd(cmd, node=None, info=False):
 
 def gen_data_thread(excel, dir, table, node, rcount, child, parallel):
   """ Generate 'DIM' data or part of 'FACT' data for specified table on given node """
-  cmd = ESGEN_HOME + "/esgen -INPUT " + excel \
+  cmd = ESGDATA_HOME + "/esgdata -INPUT " + excel \
                    + " -RCOUNT " + str(rcount) \
                    + " -TERMINATE N " \
                    + " -DIR " + dir + "/" + table\
                    + " -QUIET Y " \
                    + " -RNGSEED 20161111 " \
-                   + " -DISTRIBUTIONS " + ESGEN_HOME + "/tpcds.idx "
+                   + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx "
   '''cmd2_to_utf8 = "bash " + TPCDS_ROOT + "/../convert_to_utf8.sh %s/%s.dat" % (dir, table)'''
 
   if parallel > 1:
@@ -249,7 +249,7 @@ def gen_data(excel_file, dirs, table, nodes, rcount, parallel):
         para_list.append([])
 
     diskid = 0
-    ''' generate esgen parameter per node '''
+    ''' generate esgdata parameter per node '''
     for node, nid in zip(nodes, range(len(nodes))):
         for i in range(thread_per_node):
             para_list[nid].append((None, {"excel": excel_file, "dir": dirs[diskid], "table": table, "node": node, "rcount": rcount,
@@ -285,9 +285,9 @@ def put_data_to_hdfs(nodes, dirs, hdfs_dir, table):
         logger.error("*** run_linux_cmd *** hdfs -mkdir failed: " + ''.join(output))
         sys.exit(-11)
 
-    ret, output = run_linux_cmd("hdfs dfs -touchz " + hdfs_dir + "/esgen_test", nodes[-1])
+    ret, output = run_linux_cmd("hdfs dfs -touchz " + hdfs_dir + "/esgdata_test", nodes[-1])
     if 0 == ret:
-        run_linux_cmd("hdfs dfs -rm -skipTrash " + hdfs_dir + "/esgen_test", nodes[-1])
+        run_linux_cmd("hdfs dfs -rm -skipTrash " + hdfs_dir + "/esgdata_test", nodes[-1])
     else:
         logger.error("*** run_linux_cmd *** hdfs -touchz failed: " + ''.join(output))
         sys.exit(-11)
@@ -483,7 +483,7 @@ def check_data_dir(data_dir_list, nodes, table):
 
 def get_first_sheet_name(excel_path):
 
-    ret, output = run_linux_cmd("./esgen -INPUT " + excel_path + " -GETSHNAME Y")
+    ret, output = run_linux_cmd("./esgdata -INPUT " + excel_path + " -GETSHNAME Y")
     if ret != 0:
         logger.error("get first sheet name failed with error %d, error info: %s" % (ret, ''.join(output)))
         sys.exit(-1)
@@ -531,10 +531,11 @@ def main():
             logger.error("*** ERROR *** Data disk directory check failed : " + ''.join(output))
             sys.exit(-1)
 
-        push_esgen_kit(nodes)
-        gen_data(ESGEN_HOME + os.path.basename(options.excel), data_dir_list, sheet_name, nodes, options.rcount, options.parallel)
+        push_esgdata_kit(nodes)
+        gen_data(ESGDATA_HOME + os.path.basename(options.excel), data_dir_list, sheet_name, nodes, options.rcount, options.parallel)
 
     if options.put is not None:
+        sheet_name = get_first_sheet_name(options.excel)
         put_data_to_hdfs(nodes, data_dir_list, options.put, sheet_name)
 
     if options.clean:
