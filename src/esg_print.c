@@ -287,7 +287,7 @@ esg_print_interval (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, d
         }    
         case CUS_INT_DS:
         {
-            strcpy(format, "%lld:%02lld:%02lld:%02lld.%06lld");
+            strcpy(format, "%lld %02lld:%02lld:%02lld.%06lld");
             nHours = value_2/ 3600;
         	value_2 -= 3600 * nHours;
         	nMinutes = value_2 / 60;
@@ -296,7 +296,7 @@ esg_print_interval (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, d
 
             if (nHours >= 24 || nHours < 0 || nMinutes >= 60 || nMinutes <0 || nSeconds >= 60 || nSeconds <0)
             {
-                fprintf(stderr,"ERROR: The time format %02lld:%02lld:%02lld is not valid", nHours, nMinutes, nSeconds);
+                fprintf(stderr,"ERROR: The time format %02lld %02lld:%02lld is not valid", nHours, nMinutes, nSeconds);
                 exit(-1);
             }
             
@@ -307,7 +307,7 @@ esg_print_interval (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, d
         	}
         	else 
         	{
-                fprintf(fpOutfile, "%lld:%02lld:%02lld:%02lld", value_1, nHours, nMinutes, nSeconds);
+                fprintf(fpOutfile, "%lld %02lld:%02lld:%02lld", value_1, nHours, nMinutes, nSeconds);
         	}
             break;
         }
