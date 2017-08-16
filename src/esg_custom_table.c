@@ -264,7 +264,10 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             if (0 == isset_min && 0 == isset_max)
             {
                 if (0 == col->precision)
+                {
                     fprintf (stderr, "Type Decimal has no precision set, column %s.\n", col_num);
+                    exit(-1);
+                }
                 tmp_pre = col->precision;
                 tmp_scale = col->scale;
             }
