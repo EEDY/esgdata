@@ -272,6 +272,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             {
                 tmp_pre = buffer.uDecComb.min.precision > buffer.uDecComb.max.precision ? buffer.uDecComb.min.precision : buffer.uDecComb.max.precision;
                 tmp_scale = buffer.uDecComb.min.scale > buffer.uDecComb.max.scale ? buffer.uDecComb.min.scale : buffer.uDecComb.max.scale;
+                tmp_pre += tmp_scale;
             }
             buffer.uDecComb.val.precision = tmp_pre;
             buffer.uDecComb.val.scale = tmp_scale;
@@ -280,10 +281,12 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             //get max value if max is not set
             if (0 == isset_max)
             {
-                max = (pow(10,(col->precision - col->scale)) - 1) * pow(10, col->scale);
-                buffer.uDecComb.max.number = max + pow(10, col->scale) - 1;
+                max = (pow(10,(buffer.uDecComb.val.precision - buffer.uDecComb.val.scale)) - 1) * pow(10, buffer.uDecComb.val.scale);
+                buffer.uDecComb.max.number = max + pow(10, buffer.uDecComb.val.scale) - 1;
             }
 
+            if (buffer.uDecComb.max.scale != buffer.uDecComb.min.scale)
+                decimal_transform(&buffer.uDecComb.val, &buffer.uDecComb.min, &buffer.uDecComb.max);
             
             genrand_decimal(&buffer.uDecComb.val, DIST_LONG, &buffer.uDecComb.min, &buffer.uDecComb.max, NULL, col_num);
             io->out_decimal(col_num, &buffer.uDecComb.val, !isLastCol);

@@ -57,6 +57,9 @@ decimal_t	*mk_decimal(int s, int p);
 
 int itodec(decimal_t *dest, int i);
 int ftodec(decimal_t *d, double f);
+
+int decimal_transform(decimal_t *val, decimal_t *min, decimal_t *max);
+
 int strtodec(decimal_t *d, char *src);
 
 int	dectostr(char *dest, decimal_t *d);
