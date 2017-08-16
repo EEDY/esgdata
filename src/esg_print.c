@@ -350,13 +350,10 @@ esg_print_decimal (int nColumn, decimal_t * val, int sep)
 void
 esg_print_key (int nColumn, ds_key_t val, int sep)
 {
-	if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
+	if (fprintf (fpOutfile, HUGE_FORMAT, val) < 0)
 	{
-		if (fprintf (fpOutfile, HUGE_FORMAT, val - 1) < 0)
-		{
-			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
-			exit(-1);
-		}
+		fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
+		exit(-1);
 	}
 
 	esg_print_separator (sep);
@@ -367,25 +364,22 @@ esg_print_key (int nColumn, ds_key_t val, int sep)
 void
 esg_print_id (int nColumn, ds_key_t val, int sep)
 {
-   char szID[RS_BKEY + 1];
+    char szID[RS_BKEY + 1];
    
-   if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
-   {
-        mk_bkey(szID, val, 0);
+    mk_bkey(szID, val, 0);
 #ifdef STR_QUOTES
-        if ((fwrite ("\"", 1, 1, fpOutfile) < 1) ||
-            (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY) ||
-			(fwrite ("\"", 1, 1, fpOutfile) < 1))
+    if ((fwrite ("\"", 1, 1, fpOutfile) < 1) ||
+        (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY) ||
+		(fwrite ("\"", 1, 1, fpOutfile) < 1))
 #else
-            if (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY)
+        if (fwrite (szID, 1, RS_BKEY, fpOutfile) < RS_BKEY)
 #endif
-            {
-               fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
-               exit(-1);
-            }
-  }
+        {
+           fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
+           exit(-1);
+        }
 
-  esg_print_separator (sep);
+   esg_print_separator (sep);
    
    return;
 }
