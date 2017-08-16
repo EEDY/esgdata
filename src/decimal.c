@@ -122,17 +122,17 @@ mk_decimal(int s, int p)
 int
 itodec(decimal_t *dest, int src)
 {
-	int scale = 1,
+	int precision = 1,
 		bound = 1;
 	
 	while ((bound * 10) <= src)
 		{
-		scale += 1;
+		precision += 1;
 		bound *= 10;
 		}
 
-	dest->precision = 0;
-	dest->scale = scale;
+	dest->scale = 0;
+	dest->precision = precision;
 	dest->number = src;
 
 	return(0);
@@ -163,6 +163,44 @@ ftodec(decimal_t *dest, double f)
 }
 
 /*
+ * Routine: decimal_transform(decimal_t *val, decimal_t *min, decimal_t *max)
+ * Purpose: Convert an ascii string to a decimal_t structure
+ * Algorithm:
+ * Data Structures:
+ *
+ * Params: char *s
+ * Returns: decimal_t *
+ * Called By: 
+ * Calls: 
+ * Assumptions:
+ * Side Effects:
+ * TODO: None
+ */
+ int
+ decimal_transform(decimal_t *val, decimal_t *min, decimal_t *max)
+{
+    int s = 0, l = 0;
+    s = val->scale - min->scale;
+    l = val->scale - max->scale;
+
+    if ( s < 0 || l < 0)
+    {
+        printf("precision %d and scale %d of decimal are not maximum\n", val->precision, val->scale );
+        exit(-1);
+    }
+    else
+    {
+        min->number *= pow(10, s);
+        max->number *= pow(10, l);
+    }
+
+
+    return (0);
+    
+}
+ 
+
+/*
  * Routine: strtodec()
  * Purpose: Convert an ascii string to a decimal_t structure
  * Algorithm:
@@ -188,7 +226,7 @@ strtodec(decimal_t *dest, char *s)
 	if ((d_pt = strchr(valbuf, '.')) == NULL)
 		{
 		dest->precision = strlen(valbuf);
-		dest->number = atoi(valbuf);
+		dest->number = atoll(valbuf);
 		dest->scale = 0;
 		}
 	else
@@ -196,11 +234,11 @@ strtodec(decimal_t *dest, char *s)
 		*d_pt = '\0';
 		d_pt += 1;
 		dest->precision = strlen(valbuf);
-		dest->number = atoi(valbuf);
+		dest->number = atoll(valbuf);
 		dest->scale = strlen(d_pt);
 		for (i=0; i < dest->scale; i++)
 			dest->number *=10;
-		dest->number += atoi(d_pt);
+		dest->number += atoll(d_pt);
 		}
 	
 	if (*s == '-' && dest->number > 0)
@@ -239,10 +277,10 @@ dectostr(char *dest, decimal_t *d)
 	
 	if (d == NULL || dest == NULL)
 		return(-1);
-	for (number=d->number, i=0; i < d->precision; i++)
+	for (number=d->number, i=0; i < d->scale; i++)
 		number /= 10;
 
-	sprintf(dest, szFormat, number, d->number - number);
+	sprintf(dest, szFormat, number, d->number - number);//todo: d->number - number
 
 	return(0);
 }
@@ -273,7 +311,7 @@ dectoflt(double *dest, decimal_t *d)
 #ifdef WIN32
 #pragma warning(default: 4244)
 #endif
-	while (--d->precision > 0)
+	while (--d->scale > 0)
 		*dest /= 10.0;
 	
 	return(0);
@@ -304,14 +342,14 @@ decimal_t_op(decimal_t *dest, int op, decimal_t *d1, decimal_t *d2)
 	if ((d1 == NULL) || (d2 == NULL))
 		return(-1);
 
-	dest->scale = (d1->scale > d2->scale)?d1->scale:d2->scale;
-	if (d1->precision > d2->precision)
+	dest->precision = (d1->precision > d2->precision)?d1->precision:d2->precision;
+	if (d1->scale > d2->scale)
 	{
-		dest->precision = d1->precision;
+		dest->scale = d1->scale;
 	}
 	else
 	{
-		dest->precision = d2->precision;
+		dest->scale = d2->scale;
 	}
 
 	switch(op)
@@ -323,28 +361,28 @@ decimal_t_op(decimal_t *dest, int op, decimal_t *d1, decimal_t *d2)
 			dest->number = d1->number - d2->number;
 			break;
 		case OP_MULT:
-			res = d1->precision + d2->precision;
+			res = d1->scale + d2->scale;
 			dest->number = d1->number * d2->number;
-			while (res-- > dest->precision)
+			while (res-- > dest->scale)
 				dest->number /= 10;
 			break;
 		case OP_DIV:
 			f1 = (float)d1->number;
-			np = d1->precision;
-			while (np < dest->precision)
+			np = d1->scale;
+			while (np < dest->scale)
 			{
 				f1 *= 10.0;
 				np += 1;
 			}
 			np = 0;
-			while (np < dest->precision)
+			while (np < dest->scale)
 			{
 				f1 *= 10.0;
 				np += 1;
 			}
 			f2 = (float)d2->number;
-			np = d2->precision;
-			while (np < dest->precision)
+			np = d2->scale;
+			while (np < dest->scale)
 			{
 				f2 *= 10.0;
 				np += 1;

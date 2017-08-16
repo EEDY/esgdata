@@ -352,7 +352,7 @@ esg_print_key (int nColumn, ds_key_t val, int sep)
 {
 	if (val != (ds_key_t) -1) /* -1 is a special value, indicating NULL */
 	{
-		if (fprintf (fpOutfile, HUGE_FORMAT, val) < 0)
+		if (fprintf (fpOutfile, HUGE_FORMAT, val - 1) < 0)
 		{
 			fprintf(stderr, "ERROR: Failed to write output for column %d\n", nColumn);
 			exit(-1);
