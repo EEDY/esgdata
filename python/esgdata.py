@@ -258,7 +258,7 @@ def gen_data(excel_file, dirs, table, nodes, rcount, parallel):
             diskid %= len(dirs)
 
     ''' put extra generation threads to first node'''
-    enode_id = len(nodes) - 1
+    enode_id = len(nodes)
     for idx in range(thread_extra):
         para_list[0].append((None, {"excel": excel_file, "dir": dirs[0], "table": table, "node": node, "rcount": rcount,
                                     "child": enode_id * thread_per_node + idx + 1, "parallel": parallel}))
