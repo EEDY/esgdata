@@ -201,7 +201,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
                 max = atoll(col->max);
                 if (max > MAXINT)
                 {
-                    fprintf (stderr, "WARNING: max value of INT type exceeds MAXINT, column %s.\n", col_num);
+                    fprintf (stderr, "WARNING: max value of INT type exceeds MAXINT, column %d.\n", col_num);
                 }
             }
             else
@@ -240,55 +240,39 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
             
 		case CUS_DECIMAL:
-        {   int isset_min = 0;
+        {
+            int isset_min = 0;
             int isset_max = 0;
             int tmp_pre = 0;
             int tmp_scale = 0;
             
-
 			memset(&buffer.uDecComb, 0, sizeof(buffer.uDecComb));
             //get min, max if set
             if (strlen(col->min) > 0)
             {
-                isset_min = 1;
                 strtodec(&buffer.uDecComb.min, col->min);
+            }
+            else
+            {
+                buffer.uDecComb.min.precision = col->precision;
+                buffer.uDecComb.min.scale = col->scale;
             }
 
             if (strlen(col->max) > 0)
             {
-                isset_max = 1;
                 strtodec(&buffer.uDecComb.max, col->max);
-            }
-
-            //get precision and scale
-            if (0 == isset_min && 0 == isset_max)
-            {
-                if (0 == col->precision)
-                {
-                    fprintf (stderr, "Type Decimal has no precision set, column %s.\n", col_num);
-                    exit(-1);
-                }
-                tmp_pre = col->precision;
-                tmp_scale = col->scale;
             }
             else
             {
-                tmp_pre = buffer.uDecComb.min.precision > buffer.uDecComb.max.precision ? buffer.uDecComb.min.precision : buffer.uDecComb.max.precision;
-                tmp_scale = buffer.uDecComb.min.scale > buffer.uDecComb.max.scale ? buffer.uDecComb.min.scale : buffer.uDecComb.max.scale;
-                tmp_pre += tmp_scale;
-            }
-            buffer.uDecComb.val.precision = tmp_pre;
-            buffer.uDecComb.val.scale = tmp_scale;
-                
-
-            //get max value if max is not set
-            if (0 == isset_max)
-            {
-                max = (pow(10,(buffer.uDecComb.val.precision - buffer.uDecComb.val.scale)) - 1) * pow(10, buffer.uDecComb.val.scale);
-                buffer.uDecComb.max.number = max + pow(10, buffer.uDecComb.val.scale) - 1;
+                buffer.uDecComb.max.number = pow(10, col->precision + col->scale) - 1;
+                buffer.uDecComb.max.precision = col->precision;
+                buffer.uDecComb.max.scale = col->scale;
             }
 
-            if (buffer.uDecComb.max.scale != buffer.uDecComb.min.scale)
+            buffer.uDecComb.val.precision = col->precision;
+            buffer.uDecComb.val.scale = col->scale;
+
+            if (buffer.uDecComb.val.scale != buffer.uDecComb.max.scale || buffer.uDecComb.max.scale != buffer.uDecComb.min.scale)
                 decimal_transform(&buffer.uDecComb.val, &buffer.uDecComb.min, &buffer.uDecComb.max);
             
             genrand_decimal(&buffer.uDecComb.val, DIST_LONG, &buffer.uDecComb.min, &buffer.uDecComb.max, NULL, col_num);

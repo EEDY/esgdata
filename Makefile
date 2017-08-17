@@ -1,10 +1,10 @@
 
 
 all:
-	cd lib && make
+	cd lib && make -j 8
 	cd ..
 	@echo "Building esgdata"
-	cd src && make -f Makefile.suite
+	cd src && make -j 8 -f Makefile.suite
 	cd ..
 	cp src/esgdata src/tpcds.idx ./
 	cp python/esgdata.py ./

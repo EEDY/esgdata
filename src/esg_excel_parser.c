@@ -92,7 +92,29 @@ int esg_str_to_col_type(char * str)
 	return ret;
 }
 
+void esg_get_decimal_precision_scale(char * str, int * precision, int * scale)
+{
+    char * d_pt = NULL;
 
+	char valbuf[64];
+	strcpy(valbuf, str);
+
+    if ((d_pt = strchr(valbuf, '.')) == NULL)
+    {
+        *precision = strlen(valbuf);
+        *scale = 0;
+    }
+    else
+    {
+        *d_pt = '\0';
+        d_pt += 1;
+        
+        *precision = strlen(valbuf);
+        *scale = strlen(d_pt);
+    }
+
+    return ;
+}
 
 int esg_get_precision_time(char * val)
 {
@@ -181,10 +203,14 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						col->min[CUS_NUM_LEN - 1] = '\0';
 						strncpy(col->min, pstr, sizeof(col->min) - 1);
 						esg_debug_printf("DEBUG: get min str %s\n", col->min);
-                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_DECIMAL == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
                         {
                             col->precision = esg_get_precision_time(col->min);
 
+                        }
+                        else if (CUS_DECIMAL == col->type)
+                        {
+                            esg_get_decimal_precision_scale(col->min, &col->precision, &col->scale);
                         }
 					}
 					else
@@ -204,27 +230,42 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						strncpy(col->max, pstr, sizeof(col->max) - 1);
 						esg_debug_printf("DEBUG: get max str %s\n", col->max);
 
-                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_DECIMAL == col->type)
+                        if (CUS_TIME == col->type || CUS_TIMESTAMP == col->type)
                         {
                             int v;
                             v = esg_get_precision_time(col->max);
                             col->precision = col->precision < v ? v:col->precision;
+
+                            if (strlen(col->min) > 0)//todo: need to improve for time/timestamp
+    						{
+    							ds_key_t min_val, max_val;
+
+    							min_val = atoll(col->min);
+    							max_val = atoll(col->max);
+
+    							if (max_val < min_val)
+    							{
+    								fprintf(stderr, "esg_excel_parse_col() : Invalid min(%s) and max(%s) setting.\n", col->min, col->max);
+    								exit(-22);
+    							}
+    						}
+                        }
+                        else if (CUS_DECIMAL == col->type)
+                        {
+                            int tmp_precision = 0;
+                            int tmp_scale = 0;
+
+                            esg_get_decimal_precision_scale(col->max, &tmp_precision, &tmp_scale);
+                            if (strlen(col->min) > 0)
+                            {
+                                tmp_precision = col->precision > tmp_precision ? col->precision : tmp_precision;
+                                tmp_scale = col->scale > tmp_scale ? col->scale : tmp_scale;
+                            }
+
+                            col->precision = tmp_precision;
+                            col->scale = tmp_scale;
                         }
 
-						if (strlen(col->min) > 0)//todo: need to improve for time/timestamp 
-						{
-							ds_key_t min_val, max_val;
-
-							min_val = atoll(col->min);
-							max_val = atoll(col->max);
-
-							if (max_val < min_val)
-							{
-								fprintf(stderr, "esg_excel_parse_col() : Invalid min(%s) and max(%s) setting.\n", col->min, col->max);
-								exit(-22);
-							}
-
-						}
 					}
 					else
 					{
@@ -252,8 +293,14 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_CONTENT:
+                break;
 			case COL_NOTE:
-				//not implelemented
+				//type checks
+				if (col->type == CUS_DECIMAL && col->precision == 0)
+                {
+                    fprintf (stderr, "Type Decimal has no precision set, column %d.\n", col_num);
+                    exit(-1);
+                }
 				break;
 
 			default:
@@ -261,9 +308,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 
 		}
 
-
 	}
-
 
 	return 0;
 
