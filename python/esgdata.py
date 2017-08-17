@@ -37,7 +37,7 @@ def get_cmd(cmd):
         print("the user:%s can't run tpcds-script. \n" % user)
         sys.exit(1)
 
-logging.config.fileConfig("./conf/logging.conf")
+logging.config.fileConfig("./python/conf/logging.conf")
 logger = logging.getLogger(__name__)
 
 

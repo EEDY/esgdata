@@ -8,6 +8,7 @@ all:
 	cd ..
 	cp src/esgdata src/tpcds.idx ./
 	cp python/esgdata.py ./
+	tar czf esgdata.rel.tgz esgdata esgdata.py tpcds.idx nodes.conf dirs.conf convert_to_utf8.sh README.md python/lib python/conf example3.xls
 
 
 clean:

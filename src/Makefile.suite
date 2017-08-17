@@ -86,7 +86,8 @@ NCR_LIBS	= -lm -lc89
 SOLARIS_LIBS	= -ly -ll -lm
 SOL86_LIBS	= -ly -ll -lm
 LIBS		= $($(OS)_LIBS)
-LIBS_ESG    = -lexcelformat -lhdfs
+LIBS_ESG_OLD = -lexcelformat -lhdfs
+LIBS_ESG    = -lexcelformat
 LIB_DIR     = lib
 # YACC
 AIX_YACC	= yacc
@@ -148,7 +149,7 @@ COMMON_SRC = address.c build_support.c date.c \
 	grammar_support.c join.c list.c load.c misc.c \
 	nulls.c parallel.c permute.c pricing.c print.c r_params.c StringBuffer.c \
 	tdef_functions.c tdefs.c text.c scd.c scaling.c release.c scd.c sparse.c \
-	porting.c validate.c esg_custom_table.c esg_print.c esg_hdfs.c esg_excel_parser.c
+	porting.c validate.c esg_custom_table.c esg_print.c esg_excel_parser.c
 DISTCOMP_SRC = dcgram.c dcomp.c grammar.c 
 QGEN_SRC = tokenizer.l substitution.c QgenMain.c qgen.y query_handler.c \
 	eval.c keywords.c
@@ -176,7 +177,7 @@ DBGEN_OBJ = address.o build_support.o date.o \
 	join.o list.o load.o misc.o \
 	nulls.o parallel.o permute.o pricing.o print.o r_params.o StringBuffer.o \
 	tdef_functions.o tdefs.o text.o scd.o scaling.o release.o sparse.o validate.o \
-	esg_custom_table.o esg_print.o esg_hdfs.o esg_excel_parser.o
+	esg_custom_table.o esg_print.o esg_excel_parser.o
 DISTCOMP_OBJ = dcgram.o dcomp.o grammar.o error_msg.o StringBuffer.o r_params.o 
 QGEN_OBJ = address.o date.o decimal.o dist.o error_msg.o expr.o \
 	eval.o genrand.o grammar_support.o keywords.o list.o \

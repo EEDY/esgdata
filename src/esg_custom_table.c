@@ -725,6 +725,7 @@ cus_table_t* esg_gen_table()
 void esg_init_io(cus_table_t *tab)
 {
 
+    /* ommit HDFS output for now, its performance is bad
     if (is_set("HDFS"))
     {
         tab->io.start = esg_hdfs_start;
@@ -745,7 +746,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_null = esg_hdfs_null;
         tab->io.out_interval = esg_print_interval;
     }
-    else
+    else*/
     {
         tab->io.start = esg_print_start;
         tab->io.end = esg_print_end;
