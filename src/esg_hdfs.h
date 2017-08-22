@@ -1,4 +1,5 @@
 
+#if 0//ommit HDFS output 
 #ifndef ESG_HDFS_H
 #define ESG_HDFS_H
 
@@ -21,5 +22,6 @@ void esg_hdfs_string (char *szMessage, ds_key_t val);
 void esg_hdfs_null(int nColumn, int sep);
 
 
+#endif
 #endif
 
