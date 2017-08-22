@@ -316,7 +316,7 @@ def put_data_per_node(node, linux_dir, hdfs_dir, table):
     diskid = 0
     while diskid < disk_num:
         #logger.info("Trying put data for table %s on node %s:%s" % (table, node, linux_dir[diskid]))
-        logger.info("Trying put data on node %s:%s/%s" % (node, linux_dir[diskid], table))
+        logger.info("Trying put data from %s:%s/%s" % (node, linux_dir[diskid], table))
         put_cmd = put_cmd_temp % (linux_dir[diskid], table, hdfs_dir)
         #run_linux_cmd(put_cmd, node)
         clist.append(put_cmd)
