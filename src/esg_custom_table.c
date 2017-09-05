@@ -184,7 +184,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 	{
         case CUS_SEQ:
             assert(col->seq != NULL);
-            io->out_key(col_num, row_num + *(col->seq), !isLastCol);
+            io->out_key(col_num, row_num + *(col->seq) -1, !isLastCol);
             break;
 
 		case CUS_INT:
@@ -264,7 +264,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             }
             else
             {
-                buffer.uDecComb.max.number = pow(10, col->precision + col->scale) - 1;
+                buffer.uDecComb.max.number = pow(10, col->precision) - 1;
                 buffer.uDecComb.max.precision = col->precision;
                 buffer.uDecComb.max.scale = col->scale;
             }

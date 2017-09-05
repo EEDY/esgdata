@@ -113,7 +113,8 @@ PROG2 = dsqgen$(EXE)
 PROG3 = distcomp$(EXE)
 PROG4 = mkheader$(EXE)
 PROG5 = checksum$(EXE)
-PROGS = $(PROG1) $(PROG2) $(PROG3) $(PROG4) $(PROG5)
+#PROGS = $(PROG1) $(PROG2) $(PROG3) $(PROG4) $(PROG5)
+PROGS = $(PROG1) $(PROG3) $(PROG4) $(PROG5)
 #
 COMMON_HDR = address.h build_support.h config.h constants.h date.h \
 	dcgram.h dcomp.h dcomp_params.h decimal.h dist.h driver.h \
