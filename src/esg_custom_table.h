@@ -4,6 +4,7 @@
 #define STREAMS_H
 
 
+#define CUS_VARCHAR_MAX_LEN 37200
 #define CUS_NAME_LEN  64
 #define CUS_NUM_LEN   128
 #define CUS_PATH_LEN  512

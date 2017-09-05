@@ -81,7 +81,7 @@ int esg_str_to_col_type(char * str)
 
 	for (idx = 0, tmp = type_name[idx]; tmp != NULL; idx++, tmp = type_name[idx])
 	{
-		if (0 == strcmp(tmp, str))
+		if (0 == strcasecmp(tmp, str))
 		{
 
 			ret = cus_type[idx];

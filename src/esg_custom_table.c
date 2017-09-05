@@ -69,7 +69,7 @@ union {
     decimal_t uDecimal;
     decimal_comb_t uDecComb;
     ds_key_t uKey;//long long
-    char uStr[2048];
+    char uStr[CUS_VARCHAR_MAX_LEN];
     date_t uDate;
     date_comb_t uDateComb;
     ds_addr_t uAddr;
