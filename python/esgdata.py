@@ -56,6 +56,8 @@ def get_option(usage, version):
                       help="input DDL excel file")
     parser.add_option("-c", "--row-count", dest="rcount", type="int", default=None,
                       help="total Row count for the given table")
+    parser.add_option("--delimiter", dest="deli", default='|', 
+                      help="set output field separator")
     '''parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
                       help="a file contains destination hdfs directories")'''
     parser.add_option("-G", "--generate", action="store_true", dest="generate", default=False,
@@ -86,6 +88,9 @@ def get_option(usage, version):
       logger.info("data is generating to HDFS:%s" % (options.hdfs))
     else:
       logger.info("data is generating to DISK:%s" % (options.dirs))'''
+      
+    if options.deli and len(options.deli) > 1:
+        logger.warn("Your delimiter is too long, will use first character of your delimter : " + options.deli)
 
     return (options, args)
 
@@ -185,6 +190,7 @@ def gen_data_thread(excel, dir, table, node, rcount, child, parallel):
                    + " -DIR " + dir + "/" + table\
                    + " -QUIET Y " \
                    + " -RNGSEED 20161111 " \
+                   + " -DELIMITER \"" + delimiter + "\"" \
                    + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx "
   '''cmd2_to_utf8 = "bash " + TPCDS_ROOT + "/../convert_to_utf8.sh %s/%s.dat" % (dir, table)'''
 
@@ -499,6 +505,7 @@ def main():
     global options, args
     global data_dir_list, data_dir_num, is_hdfs
     global sheet_name
+    global delimiter
     options, args = get_option("%prog [Options]", "%prog 1.0")
 
     """ read data directory """
@@ -507,6 +514,8 @@ def main():
         data_dir_num = len(data_dir_list)
         is_hdfs = True
     else:'''
+    
+    
     data_dir_list = read_file(options.dirs)
     data_dir_num = len(data_dir_list)
     is_hdfs = False
@@ -524,6 +533,13 @@ def main():
     '''start gen data'''
     if options.generate:
         sheet_name = get_first_sheet_name(options.excel)
+
+        if options.deli:
+            delimiter = options.deli[0]
+        else:
+            delimiter = '|'
+        
+        print "DEBUG del is " + delimiter
 
         '''do mkdir if data directory not existing'''
         ret, output = check_data_dir(data_dir_list, nodes, sheet_name)

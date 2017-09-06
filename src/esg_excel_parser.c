@@ -64,10 +64,10 @@ int esg_excel_read_bool(int sheet, int col_num, int property_id)
 
 int esg_str_to_col_type(char * str)
 {
-	static char *type_name[] = {"int",   "varchar", "date",    "decimal",    "time",   "timestamp", \
+	static char *type_name[] = {"int", "varchar", "varchar_uniq", "date", "decimal", "time", "timestamp", \
                                 "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
                                 "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", NULL};//todo
-	static int cus_type[] =    {CUS_INT, CUS_CHAR,  CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
+	static int cus_type[] =    {CUS_INT, CUS_CHAR, CUS_UNIQ_CHAR, CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
                                 CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
                                 CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, -1};
 

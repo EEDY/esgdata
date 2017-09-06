@@ -347,6 +347,35 @@ mk_bkey(char *szDest, ds_key_t kPrimary, int nStream)
 	return;
 }
 
+
+static void esg_ltoc(char *szDest, unsigned long nVal)
+{
+	int i; 
+	char c;
+
+	for (i=0; i < 8; i++)
+	{
+		c = szXlate[(nVal & 0xF)];
+		*szDest++ = c;
+		nVal >>= 4;
+	}
+}
+
+void 
+esg_mk_bkey(char *szDest, ds_key_t kPrimary, int nStream)
+{
+	unsigned long nTemp;
+
+	nTemp = (unsigned long)(kPrimary >> 32);
+	esg_ltoc(szDest + 8, nTemp);
+
+	nTemp = (unsigned long)(kPrimary & 0xFFFFFFFF);
+	esg_ltoc(szDest, nTemp);
+
+	return;
+}
+
+
 /*
 * Routine: embed_string(char *szDest, char *szDist, int nValue, int nWeight, int nStream)
 * Purpose: 

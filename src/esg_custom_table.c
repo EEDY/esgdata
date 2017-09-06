@@ -13,6 +13,7 @@
 #include "pricing.h"
 #include "r_params.h"
 #include "misc.h"
+#include "build_support.h"
 
 
 typedef struct 
@@ -172,6 +173,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
     ds_key_t min;
     ds_key_t max;
 	ds_key_t max_time, max_pre, min_time, min_pre ;
+    ds_key_t sequence_base;
 
     if (col->nullable && genrand_boolean(NULL, col_num))
     {
@@ -184,7 +186,11 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 	{
         case CUS_SEQ:
             assert(col->seq != NULL);
-            io->out_key(col_num, row_num + *(col->seq) -1, !isLastCol);
+            sequence_base = 0;
+            if (NULL != col->seq)
+                sequence_base = *(col->seq);
+
+            io->out_key(col_num, row_num + sequence_base - 1, !isLastCol);
             break;
 
 		case CUS_INT:
@@ -226,7 +232,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
                 max = atoll(col->max);
             else
                 max = 9223372036854775807;
-            
+
             genrand_key(&buffer.uKey, DIST_LONG, min, max, 0, col_num);
             io->out_key(col_num, buffer.uKey, !isLastCol);
 		    break;
@@ -238,7 +244,21 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             gen_text(buffer.uStr, 1, col->length, col_num);
             io->out_varchar(col_num, buffer.uStr, !isLastCol);
             break;
+
+        case CUS_UNIQ_CHAR:
+            sequence_base = 0;
+            if (NULL != col->seq)
+                sequence_base = *(col->seq);
             
+			buffer.uStr[0] = '\0';
+
+            memset(buffer.uStr, 'A', col->length);
+	        esg_mk_bkey(&buffer.uStr[0], row_num + sequence_base - 1, col_num);
+            buffer.uStr[col->length] = '\0';
+
+            io->out_varchar(col_num, buffer.uStr, !isLastCol);
+            break;
+
 		case CUS_DECIMAL:
         {
             int isset_min = 0;
@@ -471,6 +491,9 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
     {
 	    case CUS_CHAR:
             ret = col->length;
+            break;
+        case CUS_UNIQ_CHAR:
+            ret = 0;
             break;
         case CUS_TIME:
 			ret = 2;

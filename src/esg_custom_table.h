@@ -16,6 +16,7 @@ enum cus_types
 	CUS_SEQ = 10,
 	CUS_INT,
 	CUS_CHAR,
+	CUS_UNIQ_CHAR,
 	CUS_DECIMAL,
 	CUS_DATE,
 	CUS_TIME,
