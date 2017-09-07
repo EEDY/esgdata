@@ -326,11 +326,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
         case CUS_INT_DAY:
 		case CUS_INT_HOUR:
 		case CUS_INT_MINUTE:
-            
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision >18)
-				col->precision = 18;
 
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
@@ -343,11 +338,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
 
 		case CUS_INT_SECOND:
-
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
 
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
@@ -368,11 +358,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             
 		case CUS_INT_YM:
 
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
-
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
             buffer.uInterval.val.l_precision = col->precision;
@@ -385,11 +370,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
             
 		case CUS_INT_DH:
-
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
 
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
@@ -404,11 +384,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             
 		case CUS_INT_HM:
 
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
-
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
             buffer.uInterval.val.l_precision = col->precision;
@@ -422,14 +397,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             
 		case CUS_INT_MS:
             
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
-
-            if (col->scale <= 0 || col->scale >6)
-                col->scale = 6;
-
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 
             buffer.uInterval.val.l_precision = col->precision;
@@ -445,14 +412,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
             
         case CUS_INT_DS:
-            
-            if (col->precision <= 0)
-				col->precision = 2;
-			else if (col->precision > 18)
-				col->precision = 18;
-
-            if (col->scale <= 0 || col->scale >6)
-                col->scale = 6;
 
             memset(&buffer.uInterval, 0, sizeof(buffer.uInterval));
 

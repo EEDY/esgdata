@@ -60,6 +60,8 @@ def get_option(usage, version):
                       help="set output field separator")
     '''parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
                       help="a file contains destination hdfs directories")'''
+    parser.add_option("-D", "--getddl", action="store_true", dest="getddl", default=False,
+                      help="get SQL DDL statement from excel file")
     parser.add_option("-G", "--generate", action="store_true", dest="generate", default=False,
                       help="generate data in linux")
     parser.add_option("-P", "--put", dest="put", default=None,
@@ -71,8 +73,8 @@ def get_option(usage, version):
 
     options, args = parser.parse_args()
 
-    if not options.clean and not options.generate and options.put is None:
-        parser.error("You must specify at least one of options : -G, -P, -C.")
+    if not options.clean and not options.generate and options.put is None and not options.getddl:
+        parser.error("You must specify at least one of options : -G, -P, -C or -D.")
         sys.exit(-1)
 
     if not options.excel:
@@ -498,7 +500,17 @@ def get_first_sheet_name(excel_path):
     logger.info("got first sheet name from given excel file : " + name)
 
     return name
-
+    
+    
+def get_ddl_from_sheet(excel_path):
+    
+    ret, output = run_linux_cmd("./esgdata -INPUT " + excel_path + " -GETDDL Y")
+    if ret != 0:
+        logger.error("get SQL DDL from excel failed with error %d, error info: %s" % (ret, ''.join(output)))
+    else:
+        logger.info("get SQL DDL from excel : ")
+        print ''.join(output)
+        
 
 def main():
     """ Main function """
@@ -538,8 +550,8 @@ def main():
             delimiter = options.deli[0]
         else:
             delimiter = '|'
-        
-        print "DEBUG del is " + delimiter
+
+        logger.info("Current delimiter is " + delimiter)
 
         '''do mkdir if data directory not existing'''
         ret, output = check_data_dir(data_dir_list, nodes, sheet_name)
@@ -558,6 +570,9 @@ def main():
         sheet_name = get_first_sheet_name(options.excel)
 
         delete_data_from_linux(data_dir_list, nodes, sheet_name)
+        
+    if options.getddl:
+        get_ddl_from_sheet(options.excel)
 
 
 if __name__ == "__main__":

@@ -68,6 +68,7 @@ typedef struct CUS_IO_FUNC
 typedef struct CUS_COLUMN
 {
 	char col_name[CUS_NAME_LEN];
+    int base_type; //now used for type CUS_SEQ
 	int type;
 	int length;
 	int precision;
