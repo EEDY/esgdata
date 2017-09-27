@@ -51,8 +51,11 @@ int esg_excel_get_ddl(cus_table_t * table)
                 sprintf(buffer, "%s %s %-30s INT\n", buffer, comma, col->col_name);
                 break;
 
-            case CUS_SEQ://todo: 
             case CUS_BIG_INT:
+				sprintf(buffer, "%s %s %-30s LARGEINT\n", buffer, comma, col->col_name);
+				break;
+
+            case CUS_SEQ:
                 if (col->base_type == CUS_INT)
                     sprintf(buffer, "%s %s %-30s INT\n", buffer, comma, col->col_name);
                 else if (col->base_type == CUS_BIG_INT)
