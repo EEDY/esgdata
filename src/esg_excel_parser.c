@@ -69,7 +69,7 @@ int esg_excel_get_ddl(cus_table_t * table)
 
             case CUS_DECIMAL:
                 sprintf(buffer, "%s %s %-30s DECIMAL(%d, %d)\n", 
-                                  buffer, comma, col->col_name, col->precision, col->scale);
+                                  buffer, comma, col->col_name, col->precision + col->scale, col->scale);
                 break;
 
             case CUS_DATE:
