@@ -343,9 +343,6 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 
             buffer.uInterval.val.l_precision = col->precision;
 
-            if (col->scale <= 0 || col->scale > 6)
-                col->scale = 6;
-
             buffer.uInterval.val.f_precision = col->scale;
             buffer.uInterval.max.l_precision = pow(10, buffer.uInterval.val.l_precision) - 1;
             buffer.uInterval.max.f_precision = pow(10, buffer.uInterval.val.f_precision) - 1;
