@@ -4,6 +4,7 @@
 #define STREAMS_H
 
 
+#define CUS_VARCHAR_MAX_LEN 37200
 #define CUS_NAME_LEN  64
 #define CUS_NUM_LEN   128
 #define CUS_PATH_LEN  512
@@ -15,6 +16,7 @@ enum cus_types
 	CUS_SEQ = 10,
 	CUS_INT,
 	CUS_CHAR,
+	CUS_UNIQ_CHAR,
 	CUS_DECIMAL,
 	CUS_DATE,
 	CUS_TIME,
@@ -66,6 +68,7 @@ typedef struct CUS_IO_FUNC
 typedef struct CUS_COLUMN
 {
 	char col_name[CUS_NAME_LEN];
+    int base_type; //now used for type CUS_SEQ
 	int type;
 	int length;
 	int precision;

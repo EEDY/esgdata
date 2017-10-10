@@ -52,6 +52,7 @@ void mk_word(char *dest, char *syl_set, ds_key_t src, int char_cnt, int col);
 int set_locale(int nRegion, decimal_t *longitude, decimal_t *latitude);
 int adj_time(ds_key_t *res_date, ds_key_t *res_time, ds_key_t base_date, ds_key_t base_time, ds_key_t offset_key, int tabid);
 void mk_bkey(char *szDest, ds_key_t kPrimary, int nStream);
+void esg_mk_bkey(char *szDest, ds_key_t kPrimary, int nStream);
 int embed_string(char *szDest, char *szDist, int nValue, int nWeight, int nStream);
 int SetScaleIndex(char *szName, char *szValue);
 int mk_companyname(char *dest, int nTable, int nCompany);

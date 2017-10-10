@@ -56,8 +56,12 @@ def get_option(usage, version):
                       help="input DDL excel file")
     parser.add_option("-c", "--row-count", dest="rcount", type="int", default=None,
                       help="total Row count for the given table")
+    parser.add_option("--delimiter", dest="deli", default='|', 
+                      help="set output field separator")
     '''parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
                       help="a file contains destination hdfs directories")'''
+    parser.add_option("-D", "--getddl", action="store_true", dest="getddl", default=False,
+                      help="get SQL DDL statement from excel file")
     parser.add_option("-G", "--generate", action="store_true", dest="generate", default=False,
                       help="generate data in linux")
     parser.add_option("-P", "--put", dest="put", default=None,
@@ -69,8 +73,8 @@ def get_option(usage, version):
 
     options, args = parser.parse_args()
 
-    if not options.clean and not options.generate and options.put is None:
-        parser.error("You must specify at least one of options : -G, -P, -C.")
+    if not options.clean and not options.generate and options.put is None and not options.getddl:
+        parser.error("You must specify at least one of options : -G, -P, -C or -D.")
         sys.exit(-1)
 
     if not options.excel:
@@ -86,6 +90,9 @@ def get_option(usage, version):
       logger.info("data is generating to HDFS:%s" % (options.hdfs))
     else:
       logger.info("data is generating to DISK:%s" % (options.dirs))'''
+      
+    if options.deli and len(options.deli) > 1:
+        logger.warn("Your delimiter is too long, will use first character of your delimter : " + options.deli)
 
     return (options, args)
 
@@ -185,6 +192,7 @@ def gen_data_thread(excel, dir, table, node, rcount, child, parallel):
                    + " -DIR " + dir + "/" + table\
                    + " -QUIET Y " \
                    + " -RNGSEED 20161111 " \
+                   + " -DELIMITER \"" + delimiter + "\"" \
                    + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx "
   '''cmd2_to_utf8 = "bash " + TPCDS_ROOT + "/../convert_to_utf8.sh %s/%s.dat" % (dir, table)'''
 
@@ -316,7 +324,7 @@ def put_data_per_node(node, linux_dir, hdfs_dir, table):
     diskid = 0
     while diskid < disk_num:
         #logger.info("Trying put data for table %s on node %s:%s" % (table, node, linux_dir[diskid]))
-        logger.info("Trying put data on node %s:%s/%s" % (node, linux_dir[diskid], table))
+        logger.info("Trying put data from %s:%s/%s" % (node, linux_dir[diskid], table))
         put_cmd = put_cmd_temp % (linux_dir[diskid], table, hdfs_dir)
         #run_linux_cmd(put_cmd, node)
         clist.append(put_cmd)
@@ -492,13 +500,24 @@ def get_first_sheet_name(excel_path):
     logger.info("got first sheet name from given excel file : " + name)
 
     return name
-
+    
+    
+def get_ddl_from_sheet(excel_path):
+    
+    ret, output = run_linux_cmd("./esgdata -INPUT " + excel_path + " -GETDDL Y")
+    if ret != 0:
+        logger.error("get SQL DDL from excel failed with error %d, error info: %s" % (ret, ''.join(output)))
+    else:
+        logger.info("get SQL DDL from excel : ")
+        print ''.join(output)
+        
 
 def main():
     """ Main function """
     global options, args
     global data_dir_list, data_dir_num, is_hdfs
     global sheet_name
+    global delimiter
     options, args = get_option("%prog [Options]", "%prog 1.0")
 
     """ read data directory """
@@ -507,6 +526,8 @@ def main():
         data_dir_num = len(data_dir_list)
         is_hdfs = True
     else:'''
+    
+    
     data_dir_list = read_file(options.dirs)
     data_dir_num = len(data_dir_list)
     is_hdfs = False
@@ -525,6 +546,13 @@ def main():
     if options.generate:
         sheet_name = get_first_sheet_name(options.excel)
 
+        if options.deli:
+            delimiter = options.deli[0]
+        else:
+            delimiter = '|'
+
+        logger.info("Current delimiter is " + delimiter)
+
         '''do mkdir if data directory not existing'''
         ret, output = check_data_dir(data_dir_list, nodes, sheet_name)
         if ret != 0:
@@ -542,6 +570,9 @@ def main():
         sheet_name = get_first_sheet_name(options.excel)
 
         delete_data_from_linux(data_dir_list, nodes, sheet_name)
+        
+    if options.getddl:
+        get_ddl_from_sheet(options.excel)
 
 
 if __name__ == "__main__":

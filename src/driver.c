@@ -623,6 +623,13 @@ main (int ac, char **av)
     
     init_rand_cus(table->col_num);
 
+    /* generate ddl based on excel */
+    if (is_set("GETDDL"))
+    {
+        int ret = 0;
+        ret = esg_excel_get_ddl(table);
+        exit(ret);
+    }
 
 	/* build command line argument string */
 	g_szCommandLine[0] = '\0';
