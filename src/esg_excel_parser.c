@@ -639,7 +639,10 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						//malloc contents space
 						length = strlen(pstr);
 						col->content_idx = (int*) malloc(sizeof(int) * (comma_num+1));
+						memset(col->content_idx, 0, sizeof(int) * (comma_num+1) );
+						
 						col->contents = (char*)malloc(length + 100);
+						memset(col->contents, 0, length + 100);
 
 						col->content_num = 0;
 						for (current = pstr; *current != '\0'; current++)
@@ -653,6 +656,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 										col->content_idx[col->content_num] = dest_length;
 										col->content_num++;
 										strncpy(col->contents + dest_length, head, current_size);
+										col->contents[dest_length + current_size] = '\0';
 										dest_length += current_size + 1;
 									}
 
