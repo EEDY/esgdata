@@ -434,7 +434,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             buffer.uKey = 0;
             genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
 
-            io->out_varchar(col_num, col->contents[buffer.uKey - 1], !isLastCol);
+            io->out_varchar(col_num, col->contents + col->content_idx[buffer.uKey - 1], !isLastCol);
 
 			break;
             
