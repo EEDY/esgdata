@@ -626,6 +626,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						int current_size = 0;
 						int space_size = 0;
 						int dest_length = 0;
+						int end_string = 0;
 
 						//get total number of commas
 						for (current = pstr; *current != '\0'; current++)
@@ -645,10 +646,11 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 						memset(col->contents, 0, length + 100);
 
 						col->content_num = 0;
-						for (current = pstr; *current != '\0'; current++)
+						for (current = pstr; !end_string; current++)
 						{
 							switch (*current)
 							{
+								case '\0':
 								case ',':
 
 									if (current_size > 0)
@@ -664,6 +666,10 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 									head = NULL;
 									current_size = 0;
 									space_size = 0;
+
+									if (*current == '\0')
+										end_string = 1;
+
 									break;
 
 								case ' ':
