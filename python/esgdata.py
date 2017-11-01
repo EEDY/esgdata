@@ -7,6 +7,7 @@ from multiprocessing import Process, Queue
 from datetime import datetime
 import time
 import random
+import signal
 import os
 import platform
 import re
@@ -223,6 +224,8 @@ def gen_data_log(request, result):
 
 def gen_data_per_node(para_list):
 
+  signal.signal(signal.SIGINT, signal.SIG_DFL)
+  
   '''get max nproc at a time for per node'''
   max_nproc = 100
 
@@ -278,7 +281,7 @@ def gen_data(excel_file, dirs, table, nodes, rcount, parallel):
         proc = Process(target=gen_data_per_node, args=(para_list[nid],))
         plist.append(proc)
         proc.start()
-
+	
     for proc in plist:
         proc.join()
 
@@ -510,7 +513,28 @@ def get_ddl_from_sheet(excel_path):
     else:
         logger.info("get SQL DDL from excel : ")
         print ''.join(output)
-        
+
+
+def kill_all_process(nodes):
+  """ kill all esgdata processes on every node """
+  plist = []
+  for node in nodes:
+    proc = Process(target=run_linux_cmd, args=("ps aux | grep esgdata\  | grep -v grep | grep -v ssh | awk \"{print \\$2}\" | xargs kill", node, True))
+    plist.append(proc)
+
+  for proc in plist:
+    proc.start()
+
+  for proc in plist:
+    proc.join()
+    
+
+def handler(signum, frame):
+    logger.info("Ctr-C received, kill all esgdata processes on every nodes.")
+    kill_all_process(nodes)
+    sheet_name = get_first_sheet_name(options.excel)
+    delete_data_from_linux(data_dir_list, nodes, sheet_name)
+    sys.exit(0)
 
 def main():
     """ Main function """
@@ -546,6 +570,9 @@ def main():
     if options.generate:
         sheet_name = get_first_sheet_name(options.excel)
 
+        #put it here to register this handler only in main process
+        signal.signal(signal.SIGINT, handler)
+
         if options.deli:
             delimiter = options.deli[0]
         else:
@@ -561,6 +588,8 @@ def main():
 
         push_esgdata_kit(nodes)
         gen_data(ESGDATA_HOME + os.path.basename(options.excel), data_dir_list, sheet_name, nodes, options.rcount, options.parallel)
+
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     if options.put is not None:
         sheet_name = get_first_sheet_name(options.excel)
