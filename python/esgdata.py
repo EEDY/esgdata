@@ -34,7 +34,7 @@ def get_cmd(cmd):
     if retval == 0:
         pre_cmd = "sudo su hdfs -c '" + cmd + "'"
     else:
-        logger.WARN("the user:%s can't run tpcds script. " % user)
+        logger.warn("the user:%s can't run tpcds script. " % user)
         print("the user:%s can't run tpcds-script. \n" % user)
         sys.exit(1)
 
@@ -519,7 +519,7 @@ def kill_all_process(nodes):
   """ kill all esgdata processes on every node """
   plist = []
   for node in nodes:
-    proc = Process(target=run_linux_cmd, args=("ps aux | grep esgdata\  | grep -v grep | grep -v ssh | awk \"{print \\$2}\" | xargs kill", node, True))
+    proc = Process(target=run_linux_cmd, args=("ps aux | grep esgdata\  | grep \"" + sheet_name + "\" | grep -v grep | grep -v ssh | awk \"{print \\$2}\" | xargs kill", node, True))
     plist.append(proc)
 
   for proc in plist:
@@ -530,10 +530,10 @@ def kill_all_process(nodes):
     
 
 def handler(signum, frame):
-    logger.info("Ctr-C received, kill all esgdata processes on every nodes.")
+    logger.warn("Ctr-C received, kill all esgdata processes on every nodes, and remove all generating data.")
     kill_all_process(nodes)
-    sheet_name = get_first_sheet_name(options.excel)
     delete_data_from_linux(data_dir_list, nodes, sheet_name)
+    logger.warn("Exit.")
     sys.exit(0)
 
 def main():
