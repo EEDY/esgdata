@@ -35,14 +35,14 @@ void esg_excel_destroy()
 
 int esg_excel_get_ddl(cus_table_t * table)
 {
-#define BUFFER_SIZE 10240
+#define BUFFER_SIZE 100000
     int ret = 0;
     int idx;
     cus_col_t * col;
     char buffer[BUFFER_SIZE];
     char * comma = " ";
 
-    sprintf(buffer, "CREATE TABLE %s (\n", table->tal_name);
+    sprintf(buffer, "\n\n--Trafodion DDL \nCREATE TABLE %s (\n", table->tal_name);
     for (idx = 1, col = table->cols; idx < table->col_num + 1; idx++, col = col+1)
 	{
 		switch(col->type)
@@ -153,6 +153,89 @@ int esg_excel_get_ddl(cus_table_t * table)
     
     return ret;
 }
+
+
+int esg_excel_get_hive_ddl(cus_table_t * table)
+{
+#define BUFFER_SIZE 100000
+    int ret = 0;
+    int idx;
+    cus_col_t * col;
+    char buffer[BUFFER_SIZE];
+    char * comma = " ";
+
+    sprintf(buffer, "\n\n--Hive DDL \nCREATE TABLE %s (\n", table->tal_name);
+    for (idx = 1, col = table->cols; idx < table->col_num + 1; idx++, col = col+1)
+	{
+		switch(col->type)
+        {
+            case CUS_INT:
+                sprintf(buffer, "%s %s %-30s INT\n", buffer, comma, col->col_name);
+                break;
+
+            case CUS_BIG_INT:
+				sprintf(buffer, "%s %s %-30s BIGINT\n", buffer, comma, col->col_name);
+				break;
+
+            case CUS_SEQ:
+                if (col->base_type == CUS_INT)
+                    sprintf(buffer, "%s %s %-30s INT\n", buffer, comma, col->col_name);
+                else if (col->base_type == CUS_BIG_INT)
+                    sprintf(buffer, "%s %s %-30s BIGINT\n", buffer, comma, col->col_name);
+                break;
+
+            case CUS_CHAR:
+            case CUS_UNIQ_CHAR:
+                sprintf(buffer, "%s %s %-30s VARCHAR(%d)\n", buffer, comma, col->col_name, col->length);
+                break;
+
+            case CUS_DECIMAL:
+                sprintf(buffer, "%s %s %-30s DECIMAL(%d, %d)\n", 
+                                  buffer, comma, col->col_name, col->precision + col->scale, col->scale);
+                break;
+
+            case CUS_DATE:
+                sprintf(buffer, "%s %s %-30s DATE\n", 
+                                  buffer, comma, col->col_name);
+                break;
+
+            case CUS_TIME:
+                sprintf(buffer, "%s %s %-30s VARCHAR(20)\n",
+                                  buffer, comma, col->col_name);
+                break;
+
+            case CUS_TIMESTAMP:
+                sprintf(buffer, "%s %s %-30s VARCHAR(30)\n",
+                                  buffer, comma, col->col_name);
+                break;
+
+            case CUS_INT_YEAR:
+	        case CUS_INT_MONTH:
+            case CUS_INT_DAY:
+            case CUS_INT_HOUR:
+            case CUS_INT_MINUTE:
+            case CUS_INT_SECOND:
+            case CUS_INT_YM:
+            case CUS_INT_DH:
+            case CUS_INT_HM:
+            case CUS_INT_MS:
+            case CUS_INT_DS:
+                sprintf(buffer, "%s %s %-30s VARCHAR(30)\n", 
+                                  buffer, comma, col->col_name);
+                break;
+
+            default:
+                break;
+        }
+        comma = ",";
+	}
+    sprintf(buffer, "%s)\nROW FORMAT DELIMITED\n  FIELDS TERMINATED BY '|';\n", buffer);
+
+    fprintf(stdout, buffer);
+    
+    return ret;
+}
+
 
 
 int esg_excel_get_sheet_name(char *excel, char *buf)

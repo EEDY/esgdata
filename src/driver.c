@@ -628,6 +628,7 @@ main (int ac, char **av)
     {
         int ret = 0;
         ret = esg_excel_get_ddl(table);
+		ret += esg_excel_get_hive_ddl(table);
         exit(ret);
     }
 
