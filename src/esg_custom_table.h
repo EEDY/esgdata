@@ -36,6 +36,7 @@ enum cus_types
 	CUS_INT_MS, //INTERVAL TYPE FOR MINUTE TO SECOND
 	CUS_INT_DS, //INTERVAL TYPE FOR DAY TO SECOND
 	CUS_BIG_INT,
+	CUS_CONTENT,
 	
 	CUS_UNKNOWN
 };
@@ -78,6 +79,11 @@ typedef struct CUS_COLUMN
 	char min[CUS_NUM_LEN];
 	char max[CUS_NUM_LEN];
 	long long *seq;
+
+	//content
+	int content_num;
+	int *content_idx;
+	char *contents;
 	
 } cus_col_t;
 

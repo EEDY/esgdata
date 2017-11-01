@@ -271,10 +271,10 @@ int esg_str_to_col_type(char * str)
 {
 	static char *type_name[] = {"int", "varchar", "varchar_uniq", "date", "decimal", "time", "timestamp", \
                                 "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
-                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", NULL};//todo
+                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", "content", NULL};//todo
 	static int cus_type[] =    {CUS_INT, CUS_CHAR, CUS_UNIQ_CHAR, CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
                                 CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
-                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, -1};
+                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, CUS_CONTENT, -1};
 
 	char * tmp;
 	int idx;
@@ -371,7 +371,7 @@ int esg_excel_type_check(cus_col_t * col, int col_num)
             break;
 
         case CUS_DECIMAL:
-            if (col->precision < 0 || col->precision < col->scale)
+            if (col->precision <= 0 || col->precision < col->scale)
             {
                 fprintf(stderr, "esg_excel_type_check() : Invalid precision for type DECIMAL on excel record %d.\n", col_num);
 				exit(-44);
@@ -420,6 +420,14 @@ int esg_excel_type_check(cus_col_t * col, int col_num)
 				exit(-48);
             }
             break;
+
+		case CUS_CONTENT:
+			if (col->content_num < 1 || col->content_idx == NULL || col->contents == NULL)
+			{
+				fprintf(stderr, "esg_excel_type_check() : Invalid contents for type CONTENT on excel record %d.\n", col_num);
+				exit(-49);
+			}
+			break;
 
         default:
             break;
@@ -605,14 +613,85 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_CONTENT:
+				if (col->type == CUS_CONTENT)
+				{
+					pstr = excel_format_get_string(sheet, col_num, COL_CONTENT);
+					if (NULL != pstr)
+					{
+						char *head;
+						char *space;
+						char *current;
+						int comma_num = 0;
+						int length;
+						int current_size = 0;
+						int space_size = 0;
+						int dest_length = 0;
+
+						//get total number of commas
+						for (current = pstr; *current != '\0'; current++)
+						{
+							if (*current == ',')
+							{
+								comma_num++;
+							}
+						}
+
+						//malloc contents space
+						length = strlen(pstr);
+						col->content_idx = (int*) malloc(sizeof(int) * (comma_num+1));
+						col->contents = (char*)malloc(length + 100);
+
+						col->content_num = 0;
+						for (current = pstr; *current != '\0'; current++)
+						{
+							switch (*current)
+							{
+								case ',':
+
+									if (current_size > 0)
+									{
+										col->content_idx[col->content_num] = dest_length;
+										col->content_num++;
+										strncpy(col->contents + dest_length, head, current_size);
+										dest_length += current_size + 1;
+									}
+
+									//reset
+									head = NULL;
+									current_size = 0;
+									space_size = 0;
+									break;
+
+								case ' ':
+
+									//ignore spaces before and after a content
+									if (current_size != 0)
+									{
+										space_size++;
+									}
+
+									break;
+
+								default:
+									if (current_size == 0)
+										head = current;
+									
+									if (space_size > 0)
+									{
+										current_size += space_size;
+										space_size = 0;
+									}
+									current_size++;
+									break;
+							}
+
+						}
+
+					}
+				}
                 break;
+
 			case COL_NOTE:
-				//type checks
-				if (col->type == CUS_DECIMAL && col->precision == 0)
-                {
-                    fprintf (stderr, "Type Decimal has no precision set, column %d.\n", col_num);
-                    exit(-1);
-                }
 				break;
 
 			default:

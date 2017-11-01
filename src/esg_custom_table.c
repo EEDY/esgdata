@@ -425,6 +425,18 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
 
             io->out_interval(col_num, col->type, buffer.uInterval.uKey_1, buffer.uInterval.uKey_2, buffer.uInterval.uKey_3, buffer.uInterval.val.l_precision, buffer.uInterval.val.f_precision, !isLastCol);
             break;
+
+		case CUS_CONTENT:
+
+			min = 0;
+			max = col->content_num;
+
+            buffer.uKey = 0;
+            genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
+
+            io->out_varchar(col_num, col->contents[buffer.uKey - 1], !isLastCol);
+
+			break;
             
         case CUS_RANDOM:
         case CUS_EMAIL:
@@ -482,6 +494,7 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
 		case CUS_DATE:
         case CUS_SEQ:
 		case CUS_INT:
+		case CUS_CONTENT:
         default:
             ret = 1;
             break;
