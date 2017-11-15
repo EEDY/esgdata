@@ -111,7 +111,7 @@ def cluster_scp(src_path, nodes, target_path):
 def push_esgdata_kit(nodes):
   """ Push tpcds_kit to all nodes """
   logger.info("push esgdata-kit to cluster")
-  esgdata_kit = " esgdata tpcds.idx " + options.excel + " "
+  esgdata_kit = " esgdata tpcds.idx " + options.excel + " files "
   cluster_scp(esgdata_kit, nodes, ESGDATA_HOME)
   cluster_scp("convert_to_utf8.sh", nodes, ESGDATA_HOME)
 
@@ -194,7 +194,8 @@ def gen_data_thread(excel, dir, table, node, rcount, child, parallel):
                    + " -QUIET Y " \
                    + " -RNGSEED 20161111 " \
                    + " -DELIMITER \"" + delimiter + "\"" \
-                   + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx "
+                   + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx " \
+				   + " -FILEDIR " + ESGDATA_HOME + "/files "
   '''cmd2_to_utf8 = "bash " + TPCDS_ROOT + "/../convert_to_utf8.sh %s/%s.dat" % (dir, table)'''
 
   if parallel > 1:

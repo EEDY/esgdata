@@ -70,12 +70,13 @@ option_t options[] =
 {"RCOUNT",		OPT_INT|OPT_ADV,	25, "set total row count", NULL, "10000"}, 
 {"INPUT",		OPT_STR|OPT_ADV,	26, "set INPUT DDL excel file", NULL, ""}, 
 {"GETSHNAME",	OPT_FLG,	        27, "got first sheet name from INPUT DDL excel file", NULL, "N"}, 
-{"GETDDL",      OPT_FLG|OPT_ADV, 28, "got SQL DDL from input excel file", NULL, "N"},
+{"GETDDL",      OPT_FLG|OPT_ADV,    28, "got SQL DDL from input excel file", NULL, "N"},
 {"HDFS",		OPT_FLG,	        29, "change 'DIR' option from linux fs to HDFS dfs", NULL, "N"}, 
+{"FILEDIR",     OPT_STR,            30, "set content file direcotry for esgdata to load", NULL, "N"},
 {NULL}
 };
 
-char *params[29 + 2];
+char *params[30 + 2];
 #else
 extern option_t options[];
 extern char *params[];

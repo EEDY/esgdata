@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <assert.h>
+
+#include "params.h"
 
 #include "genrand.h"
 #include "esg_custom_table.h"
@@ -271,10 +275,10 @@ int esg_str_to_col_type(char * str)
 {
 	static char *type_name[] = {"int", "varchar", "varchar_uniq", "date", "decimal", "time", "timestamp", \
                                 "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
-                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", "content", NULL};//todo
+                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", "content", "file", NULL};//todo
 	static int cus_type[] =    {CUS_INT, CUS_CHAR, CUS_UNIQ_CHAR, CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
                                 CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
-                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, CUS_CONTENT, -1};
+                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, CUS_CONTENT, CUS_FILE, -1};
 
 	char * tmp;
 	int idx;
@@ -422,9 +426,10 @@ int esg_excel_type_check(cus_col_t * col, int col_num)
             break;
 
 		case CUS_CONTENT:
+		case CUS_FILE:
 			if (col->content_num < 1 || col->content_idx == NULL || col->contents == NULL)
 			{
-				fprintf(stderr, "esg_excel_type_check() : Invalid contents for type CONTENT on excel record %d.\n", col_num);
+				fprintf(stderr, "esg_excel_type_check() : Invalid contents for type CONTENT/FILE on excel record %d.\n", col_num);
 				exit(-49);
 			}
 			break;
@@ -696,6 +701,89 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 							}
 
 						}
+
+					}
+				}
+				else if (col->type == CUS_FILE)
+				{
+					pstr = excel_format_get_string(sheet, col_num, COL_CONTENT);
+					if (NULL != pstr)
+					{
+						int max_idx_size = 3000;
+						int max_length = 50000;
+
+					 	int current_head = 0;
+						int current_length = 0;
+						int current_idx_num = 0;
+
+						char file_name[2048];
+
+						char * file_dir = get_str("FILEDIR");
+						
+						assert(file_dir != NULL);
+
+						sprintf(file_name, "%s/%s", file_dir, pstr);
+
+						FILE * file = fopen(file_name, "r");
+						if (NULL == file)
+						{
+							fprintf(stderr, "esg_excel_type_check() : file %s opened failed with error %d.\n", pstr, errno);
+							exit(-100);
+						}
+
+						//malloc contents space
+						col->content_idx = (int*) malloc(sizeof(int) * (max_idx_size));
+						memset(col->content_idx, 0, sizeof(int) * (max_idx_size) );
+
+						col->contents = (char*)malloc(max_length);
+						memset(col->contents, 0, max_length);
+
+						int c;
+						current_head = current_length;
+						do
+						{
+						    c = fgetc(file);
+
+							if ('\n' == c || EOF == c)
+							{
+								col->contents[current_length] = '\0';
+								col->content_idx[current_idx_num] = current_head;
+								
+								if (EOF == c)
+									break;
+
+								current_head = current_length+1;
+								current_idx_num++;
+
+							}
+							else
+								col->contents[current_length] = c;
+
+							current_length++;
+
+							if (current_idx_num + 100 > max_idx_size)
+							{
+								max_idx_size *= 2;
+								col->content_idx = (int*) realloc(col->content_idx, sizeof(int) * (max_idx_size));
+     					        assert(col->content_idx != NULL);
+							}
+
+							if (current_length + 2048 > max_length)
+							{
+								max_length *= 2;
+								col->contents = (char*) realloc(col->contents, max_length);
+     					        assert(col->contents != NULL);
+							}
+						} while ( !ferror (file) );
+						col->content_num = current_idx_num;
+
+						if (ferror (file))
+						{
+							perror ("Error reading content file.");
+							assert(0);
+						}
+
+						fclose(file);
 
 					}
 				}

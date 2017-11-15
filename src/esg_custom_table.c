@@ -427,6 +427,7 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             break;
 
 		case CUS_CONTENT:
+		case CUS_FILE:
 
 			min = 0;
 			max = col->content_num;
@@ -495,6 +496,7 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
         case CUS_SEQ:
 		case CUS_INT:
 		case CUS_CONTENT:
+		case CUS_FILE:
         default:
             ret = 1;
             break;
