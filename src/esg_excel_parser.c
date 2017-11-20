@@ -275,10 +275,11 @@ int esg_str_to_col_type(char * str)
 {
 	static char *type_name[] = {"int", "varchar", "varchar_uniq", "date", "decimal", "time", "timestamp", \
                                 "interval year", "interval month", "interval day", "interval hour", "interval minute","interval second", \
-                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", "interval day to second", "bigint", "content", "file", NULL};//todo
+                                "interval year to month", "interval day to hour", "interval hour to minute", "interval minute to second", \
+                                "interval day to second", "bigint", "content", "file", "ipv4", NULL};//todo
 	static int cus_type[] =    {CUS_INT, CUS_CHAR, CUS_UNIQ_CHAR, CUS_DATE,  CUS_DECIMAL,  CUS_TIME, CUS_TIMESTAMP, \
                                 CUS_INT_YEAR, CUS_INT_MONTH, CUS_INT_DAY, CUS_INT_HOUR, CUS_INT_MINUTE, CUS_INT_SECOND, \
-                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, CUS_CONTENT, CUS_FILE, -1};
+                                CUS_INT_YM,CUS_INT_DH,CUS_INT_HM,CUS_INT_MS,CUS_INT_DS, CUS_BIG_INT, CUS_CONTENT, CUS_FILE, CUS_IPV4, -1};
 
 	char * tmp;
 	int idx;
@@ -349,6 +350,7 @@ int esg_excel_type_check(cus_col_t * col, int col_num)
     {
         case CUS_INT:
         case CUS_BIG_INT:
+		case CUS_IPV4:
             //do nothing
             break;
 
@@ -519,7 +521,9 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MIN:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || 
+					CUS_DECIMAL == col->type || CUS_TIME == col->type || 
+					CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type || CUS_IPV4 == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MIN);
 					if (NULL != pstr)
@@ -545,7 +549,8 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_MAX:
-				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type)
+				if (CUS_INT == col->type || CUS_DATE == col->type || CUS_DECIMAL == col->type || 
+					CUS_TIME == col->type || CUS_TIMESTAMP == col->type || CUS_BIG_INT == col->type || CUS_IPV4 == col->type)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_TYPE_MAX);
 					if (NULL != pstr)
@@ -599,7 +604,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_SEQ_START:
-				if (col->type == CUS_INT || col->type == CUS_BIG_INT)
+				if (col->type == CUS_INT || col->type == CUS_BIG_INT || col->type == CUS_IPV4)
 				{
 					pstr = excel_format_get_string(sheet, col_num, COL_SEQ_START);
 					if (NULL != pstr)

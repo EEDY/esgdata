@@ -38,6 +38,7 @@ enum cus_types
 	CUS_BIG_INT,
 	CUS_CONTENT,
 	CUS_FILE,
+	CUS_IPV4,
 	
 	CUS_UNKNOWN
 };
@@ -63,6 +64,7 @@ typedef struct CUS_IO_FUNC
 	void (*out_string) (char *szMessage, ds_key_t val);
 	void (*out_null)(int nColumn, int sep);
     void (*out_interval) (int nColumn, int Type, ds_key_t value_1, ds_key_t value_2, ds_key_t value_3, int l_precision, int f_precision, int sep);
+	void (*out_ipv4) (int nColumn, ds_key_t val, int sep);
 
 } cus_io_func_t;
 

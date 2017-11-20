@@ -181,7 +181,8 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
         return;
     }
 
-    
+    min = 0;
+	max = 0;
 	switch(col->type)
 	{
         case CUS_SEQ:
@@ -190,7 +191,10 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             if (NULL != col->seq)
                 sequence_base = *(col->seq);
 
-            io->out_key(col_num, row_num + sequence_base - 1, !isLastCol);
+			if (col->base_type == CUS_IPV4)
+				io->out_ipv4(col_num, row_num + sequence_base - 1, !isLastCol);
+			else
+            	io->out_key(col_num, row_num + sequence_base - 1, !isLastCol);
             break;
 
 		case CUS_INT:
@@ -218,6 +222,33 @@ void esg_mk_pr_col(cus_io_func_t *io, cus_col_t *col, int col_num, int col_count
             genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
             io->out_key(col_num, buffer.uKey, !isLastCol);
 		    break;
+			
+		case CUS_IPV4:
+			
+            if (strlen(col->min) > 0)
+            {
+                min = atoll(col->min);
+            }
+            else
+                min = 16843009; //default is 1.1.1.1
+
+            if (strlen(col->max) > 0)
+            {
+                max = atoll(col->max);
+                if ((unsigned long long )max > 4294967295L)
+                {
+                    fprintf (stderr, "WARNING: max value of INT type exceeds MAXINT, column %d.\n", col_num);
+					max = 4294967295;
+                }
+            }
+            else
+                max = 4294967295;
+
+            buffer.uKey = 0;
+		    //genrand_integer(&buffer.uInt, DIST_UNIFORM, col->min, col->max, 0, col_idx);
+            genrand_key(&buffer.uKey, DIST_UNIFORM, min, max, 0, col_num);
+            io->out_ipv4(col_num, buffer.uKey, !isLastCol);
+			break;
 
         case CUS_BIG_INT:
 
@@ -497,6 +528,7 @@ int esg_pick_nUsedPerRow(cus_col_t *col)
 		case CUS_INT:
 		case CUS_CONTENT:
 		case CUS_FILE:
+		case CUS_IPV4:
         default:
             ret = 1;
             break;
@@ -759,6 +791,7 @@ void esg_init_io(cus_table_t *tab)
         tab->io.out_string = esg_print_string;
         tab->io.out_null = esg_print_null;
         tab->io.out_interval = esg_print_interval;
+		tab->io.out_ipv4 = esg_print_ipv4;
     }
 
 }

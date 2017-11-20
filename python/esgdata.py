@@ -61,6 +61,8 @@ def get_option(usage, version):
                       help="set output field separator")
     '''parser.add_option("-H", "--hdfs-dir", dest="hdfs", default=None,
                       help="a file contains destination hdfs directories")'''
+    parser.add_option("-s", "--seed", dest="seed", default=20161111,
+                      help="seed for random, default is 20161111")
     parser.add_option("-D", "--getddl", action="store_true", dest="getddl", default=False,
                       help="get SQL DDL statement from excel file")
     parser.add_option("-G", "--generate", action="store_true", dest="generate", default=False,
@@ -192,10 +194,10 @@ def gen_data_thread(excel, dir, table, node, rcount, child, parallel):
                    + " -TERMINATE N " \
                    + " -DIR " + dir + "/" + table\
                    + " -QUIET Y " \
-                   + " -RNGSEED 20161111 " \
+                   + " -RNGSEED " + str(options.seed) \
                    + " -DELIMITER \"" + delimiter + "\"" \
                    + " -DISTRIBUTIONS " + ESGDATA_HOME + "/tpcds.idx " \
-				   + " -FILEDIR " + ESGDATA_HOME + "/files "
+                   + " -FILEDIR " + ESGDATA_HOME + "/files "
   '''cmd2_to_utf8 = "bash " + TPCDS_ROOT + "/../convert_to_utf8.sh %s/%s.dat" % (dir, table)'''
 
   if parallel > 1:
@@ -282,7 +284,7 @@ def gen_data(excel_file, dirs, table, nodes, rcount, parallel):
         proc = Process(target=gen_data_per_node, args=(para_list[nid],))
         plist.append(proc)
         proc.start()
-	
+    
     for proc in plist:
         proc.join()
 

@@ -361,6 +361,32 @@ esg_print_key (int nColumn, ds_key_t val, int sep)
 	return;
 }
 
+void esg_print_ipv4(int nColumn, ds_key_t val, int sep)
+{
+	unsigned char ip_sec1, ip_sec2, ip_sec3, ip_sec4;
+	ds_key_t tmp;
+	int ipv4_val = (int) val;
+
+	ip_sec4 = ipv4_val%256;
+	tmp = ipv4_val/256;
+
+	ip_sec3 = tmp%256;
+	tmp = tmp/256;
+
+	ip_sec2 = tmp%256;
+	ip_sec1 = tmp/256;
+	
+	if (fprintf(fpOutfile, "%hhu.%hhu.%hhu.%hhu", ip_sec1, ip_sec2, ip_sec3, ip_sec4) < 0)
+	{
+		fprintf(stderr, "ERROR: Failed to write IPV4 output for column %d\n", nColumn);
+		exit(-1);
+	}
+
+	esg_print_separator (sep);
+
+	return;
+}
+
 void
 esg_print_id (int nColumn, ds_key_t val, int sep)
 {
