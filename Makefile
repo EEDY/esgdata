@@ -9,7 +9,7 @@ all:
 	cp src/esgdata src/tpcds.idx ./
 	cp python/esgdata.py ./
 	mkdir esgdata-kit  esgdata-kit/python
-	cp esgdata esgdata.py tpcds.idx nodes.conf dirs.conf convert_to_utf8.sh README.md example3.xls  esgdata-kit/
+	cp -r esgdata esgdata.py tpcds.idx nodes.conf dirs.conf convert_to_utf8.sh README.md example3.xls files  esgdata-kit/
 	cp -r python/lib python/conf  esgdata-kit/python/
 	tar czf esgdata-kit.rel.tgz esgdata-kit
 	rm -rf esgdata-kit
