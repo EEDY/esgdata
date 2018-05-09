@@ -500,7 +500,15 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
 				break;
 
 			case COL_TYPE_SCALE:
-				if (CUS_DECIMAL == col->type || CUS_INT_MS == col->type || CUS_INT_DS == col->type || CUS_INT_SECOND == col->type)
+                 if (CUS_DECIMAL == col->type)
+                 {
+                     col->scale = excel_format_get_int(sheet, col_num, COL_TYPE_SCALE);
+                     if (col->scale < 0)
+                         col->scale = 0;
+
+                     esg_debug_printf("DEBUG: get decimal col type scale %d\n", col->scale);
+                 }
+				if (CUS_INT_MS == col->type || CUS_INT_DS == col->type || CUS_INT_SECOND == col->type)
 				{
                     col->scale = excel_format_get_int(sheet, col_num, COL_TYPE_SCALE);
                     if (col->scale > 6)
@@ -508,7 +516,7 @@ int esg_excel_parse_col(cus_col_t * col, int sheet, int col_num)
                     else if (col->scale < 0)
                         col->scale = 0;
 
-                    esg_debug_printf("DEBUG: get col type scale %d\n", col->scale);
+                    esg_debug_printf("DEBUG: get interval col type scale %d\n", col->scale);
                 }
 				break;
 
