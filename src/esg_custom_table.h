@@ -4,12 +4,13 @@
 #define STREAMS_H
 
 
-#define CUS_VARCHAR_MAX_LEN 37200
-#define CUS_NAME_LEN  64
-#define CUS_NUM_LEN   128
-#define CUS_PATH_LEN  512
+//#define CUS_VARCHAR_MAX_LEN 37200
+#define CUS_VARCHAR_MAX_LEN  5000000
+#define CUS_NAME_LEN  256
+#define CUS_NUM_LEN   2048
+#define CUS_PATH_LEN  1024
 #define CUS_CANDIDATE_LEN 256
-#define CUS_MAX_COLUMNS  256
+#define CUS_MAX_COLUMNS  2048
 
 enum cus_types
 {
