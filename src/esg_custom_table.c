@@ -653,7 +653,7 @@ void esg_gen_stream(cus_table_t *table)
     cus_col_t *col;
     int idx;
 
-    memset(Streams, 0, CUS_MAX_COLUMNS * sizeof(rng_t));
+    memset(Streams, 0, CUS_MAX_COLUMNS * sizeof(rng_t)/8);
 
     for (idx = 1, col = table->cols; idx < table->col_num + 1; idx++, col++)
     {
