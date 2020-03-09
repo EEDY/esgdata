@@ -106,7 +106,7 @@ typedef struct CUS_TABLE
 } cus_table_t;
 
 
-extern rng_t Streams[];
+extern rng_t Streams[CUS_MAX_COLUMNS];
 
 
 extern cus_table_t* esg_gen_table();

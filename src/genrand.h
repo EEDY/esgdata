@@ -54,7 +54,8 @@ int nDuplicateOf;	/* duplicate streams allow independent tables to share data st
 ds_key_t nTotal;
 #endif
 } rng_t;
-extern rng_t Streams[];
+#define CUS_MAX_COLUMNS 2048
+extern rng_t Streams[CUS_MAX_COLUMNS];
 
 #define FL_SEED_OVERRUN	0x0001
 

@@ -51,7 +51,8 @@
 #include "scd.h"
 #include "parallel.h"
 #ifdef JMS
-extern rng_t Streams[];
+#define CUS_MAX_COLUMNS 2048
+extern rng_t Streams[CUS_MAX_COLUMNS];
 #endif
 
 struct W_STORE_SALES_TBL g_w_store_sales;
